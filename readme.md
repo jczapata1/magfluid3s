@@ -1,1 +1,1 @@
-Not available yet. Visit [magfluid3s-data](https://github.com/jczapata1/magfluid3s-data).
+The software is currently undergoing registration with the **Dirección Nacional de Derechos de Autor (DNDA), Ministerio del Interior, Colombia**. Visit [magfluid3s-data](https://github.com/jczapata1/magfluid3s-data).
