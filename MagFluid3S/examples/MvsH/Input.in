@@ -1,0 +1,24 @@
+# Intrinsic Parameters
+RM   : 5.0e-9
+σRM  : 0.0
+δ    : 1.0e-9 
+σδ   : 0.0
+ρM   : 5240
+MS   : 446.0e3
+Keff : 32.0e3
+HK   : (2.0*Keff)/(μ0*MS)
+α    : 0.1
+θM   : -1
+θN   : -1
+
+# External Parameters
+N    : 1000
+T0   : 100.0
+H0   : 0.2/μ0
+
+# Time Parameters
+dt   : 1.0e-11
+X0   : 1
+X1   : 200
+X2   : 200
+f    : 1.0/(X1*X2*dt)

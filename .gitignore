@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+.ipynb_checkpoints/
+.dockerignore
+Dockerfile
+MagFluid3S/test.ipynb
+*_linux
