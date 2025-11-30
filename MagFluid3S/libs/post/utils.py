@@ -86,3 +86,95 @@ def vol_magnetization(Vm, μ, Em):
     M = np.sum(μ*Em, axis=0) / Vm # Volumetric Magnetization
         
     return M
+
+#--------------------------------------------------------------------------------
+
+# Remanent Magnetization and Coercive Field
+def MR_HC(X0, X1, H, M):
+    '''
+    Calculate the remanent magnetization and the coercive field.
+
+    Input:
+    -                     X0 (int): Number of Loops 
+    -                     X1 (int): Curve Points    
+    - H (float, numpy.ndarray[X1]): Magnetic Field List
+    - M (float, numpy.ndarray[X1]): Volumetric Magnetization List
+
+    Output:
+    -                 MR_u (float): Remanent Magnetization (Up)
+    -                 MR_d (float): Remanent Magnetization (Down)
+    -                 HC_l (float): Coercive Field (Left)
+    -                 HC_r (float): Coercive Field (Right)
+    
+    Used by:
+    - data.data_MvsH 
+    '''
+
+    # latest Loop
+    l1 = (X0-1) * X1 # Initial Point
+    l2 = X0 * X1     # Final Point
+    H  = H[l1:l2]    # Magnetic Field
+    M  = M[l1:l2]    # Volumetric Magnetization
+
+    # Compute MR and HC
+    for i in range(l2-l1):
+
+        # Upper Branch
+        if (i < (l2-l1)//2):
+            
+            # Remanent Magnetization (Up)
+            if (H[i] >= 0.0 and H[i+1] <= 0.0): 
+                m    = (M[i+1]-M[i]) / (H[i+1]-H[i]) # Slope
+                MR_u = M[i] - m*H[i]                 # Prediction
+                
+            # Coercive Field (Left) 
+            if (M[i] >= 0.0 and M[i+1] <= 0.0): 
+                m    = (M[i+1]-M[i]) / (H[i+1]-H[i]) # Slope
+                HC_l = H[i] - M[i]/m                 # Prediction
+
+        # Lower Branch
+        else:   
+            
+            # Remanent Magnetization (Down)
+            if (H[i] <= 0.0 and H[i+1] >= 0.0): 
+                m    = (M[i+1]-M[i]) / (H[i+1]-H[i]) # Slope
+                MR_d = M[i] - m*H[i]                 # Prediction     
+                        
+            # Coercive Field (Right)   
+            if (M[i] <= 0.0 and M[i+1] >= 0.0): 
+                m    = (M[i+1]-M[i]) / (H[i+1]-H[i]) # Slope
+                HC_r = H[i] - M[i]/m                 # Prediction
+
+    return MR_u, MR_d, HC_l, HC_r    
+
+#--------------------------------------------------------------------------------
+
+# MvsH Loop Area
+def MvsH_area(X0, X1, H, M):
+    '''
+    Calculate the MvsH loop area.
+
+    Input:
+    -                     X0 (int): Number of Loops 
+    -                     X1 (int): Curve Points    
+    - H (float, numpy.ndarray[X1]): Magnetic Field List
+    - M (float, numpy.ndarray[X1]): Volumetric Magnetization List
+
+    Output:
+    -                    A (float): MvsH Loop Area
+    
+    Used by:
+    - data.data_MvsH 
+    '''
+
+    # Latest Loop
+    l1 = (X0-1) * X1      # Initial Point
+    l2 = (2*X0-1) * X1//2 # Intermediate Point
+    l3 = X0 * X1          # Final Point
+
+    # MvsH Loop Area
+    A_u = -np.trapz(M[l1:l2], H[l1:l2]) # Upper Branch
+    A_l = np.trapz(M[l2:l3], H[l2:l3])  # Lower Branch
+    A   = A_u - A_l                     # Area
+        
+    return A

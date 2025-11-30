@@ -1,9 +1,10 @@
 # Data
-from libs.post.utils import vol_magnetization
+from libs.post.utils import vol_magnetization, MR_HC, MvsH_area
+from libs.base.constants import μ0
 import numpy as np
 import os
       
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Data
 def data(path, simulation):
@@ -32,7 +33,7 @@ def data(path, simulation):
         
     return None  
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Data Microstates
 def data_Microstates(path):
@@ -84,7 +85,7 @@ def data_Microstates(path):
     
     return None
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Data MvsH
 def data_MvsH(path):
@@ -96,11 +97,16 @@ def data_MvsH(path):
 
     Output:
     - None
-    - M(t,H;T) File
+    - M(t,H;T) 
+    - Summary File
 
     Used by:
     - data.data
     '''
+
+    # Read Parameters
+    parameters = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    ρM = parameters[19]; MS = parameters[20]; H0 = parameters[28]; X0 = int(parameters[30]); X1 = int(parameters[31]); f = parameters[33]
 
     # Data Reading
     files = sorted([file for file in os.listdir(path + 'Microstates') if file not in ['Initial.txt', 'Saturation.txt', '.ipynb_checkpoints']])
@@ -115,6 +121,11 @@ def data_MvsH(path):
     for k, file in enumerate(files):
         Em      = np.loadtxt(path + f'Microstates/{file}', usecols=(0, 1, 2))
         M[k, :] = vol_magnetization(Vm, μ, Em)
+   
+    # Physical Observables      
+    MR_u, MR_d, HC_l, HC_r = MR_HC(X0, X1, H[:, 2], M[:, 2])                        # Remanent Magnetization (Up-Down) and Coercive Field (Left-Right)  
+    SLP0                   = 1.0e-6 * (4.0*μ0*f*MS*H0)/ρM                           # Specific Loss Power Constant
+    SLP                    = MvsH_area(X0, X1, H[:, 2], M[:, 2])/(4.0*MS*H0) * SLP0 # Specific Loss Power
 
     # Data Saving
     np.savetxt(path + 'M(t,H;T).txt',
@@ -123,9 +134,20 @@ def data_MvsH(path):
                header = '%19s %22s %22s %22s %22s %22s %22s'
                          %('t [s]', 'H_x [A/m]', 'H_y [A/m]', 'H_z [A/m]', 'M_x [A/m]', 'M_y [A/m]', 'M_z [A/m]')) 
 
+    # Add Physical Observables to Summary File    
+    with open(path + 'Summary.txt', 'a') as file: 
+        file.write(f'\n') 
+        file.write(f'        Vm: {       Vm:21.15e} m3   \n') 
+        file.write(f'      MR_u: {abs(MR_u):21.15e} A/m  \n')
+        file.write(f'      MR_d: {abs(MR_d):21.15e} A/m  \n')    
+        file.write(f'      HC_l: {abs(HC_l):21.15e} A/m  \n')
+        file.write(f'      HC_r: {abs(HC_r):21.15e} A/m  \n')    
+        file.write(f'      SLP0: {     SLP0:21.15e} W/mg \n')
+        file.write(f'       SLP: {      SLP:21.15e} W/mg   ')
+  
     return None
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Data MvsT
 def data_MvsT(path):

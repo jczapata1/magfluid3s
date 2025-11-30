@@ -107,19 +107,20 @@ def summary_file(parameters, path, simulation):
   
         # Time and Steps
         file.write(f'        dt: {parameters["dt"]:21.15e} s       \n')
-    
+
+        # Simulation Type
         if (simulation == 'Microstates'):
-            file.write(f'        X2: {parameters["X2"]:21} n.u.    \n')
-        
+            file.write(f'        X2: {parameters["X2"]:21} n.u.      ')
+
         if (simulation == 'MvsT'):
             file.write(f'        X1: {parameters["X1"]:21} n.u.    \n')
-            file.write(f'        X2: {parameters["X2"]:21} n.u.    \n')
+            file.write(f'        X2: {parameters["X2"]:21} n.u.      ')
         
         if (simulation == 'MvsH'):
             file.write(f'        X0: {parameters["X0"]:21} n.u.    \n')
             file.write(f'        X1: {parameters["X1"]:21} n.u.    \n')
             file.write(f'        X2: {parameters["X2"]:21} n.u.    \n')
-            file.write(f'         f: {parameters["f"]:21.15e} Hz   \n')
+            file.write(f'         f: {parameters["f"]:21.15e} Hz     ')
       
     file.close() 
     

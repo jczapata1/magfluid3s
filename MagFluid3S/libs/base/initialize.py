@@ -1,5 +1,6 @@
 # Initialize
 from libs.base.utils import mean_std_error, summary_file, folder
+from libs.base.constants import π, μ0, γ
 from libs.base.configurations import *
 import numpy as np
 import os
@@ -23,12 +24,14 @@ def read_parameters(path):
     - initialize.initial_MvsH
     - initialize.initial_MvsT    
     '''
+
+    # Parameters
+    parameters = {}
     
     # Constants
-    parameters       = {}
-    parameters['π']  = np.pi                              
-    parameters['μ0'] = 4.0 * parameters['π'] * 1.0e-7     
-    parameters['γ']  = 1.76085963e11 * parameters['μ0']   
+    parameters['π']  = π                             
+    parameters['μ0'] = μ0 
+    parameters['γ']  = γ  
     
     # Read Parameters
     with open(path, 'r') as file:
