@@ -1,5 +1,5 @@
 # Data
-from libs.post.utils import vol_magnetization, MR_HC, MvsH_area
+from libs.post.utils import vol_magnetization, MR_HC, MvsH_area, ΔM_ρTB
 from libs.base.constants import μ0
 import numpy as np
 import os
@@ -45,20 +45,25 @@ def data_Microstates(path):
 
     Output:
     - None
-    - M(t;H,T) File
-    - One Particle Microstates File
+    - M(t;H,T).txt
+    - One_Particle_Microstates.txt
+    - Summary.txt
 
     Used by:
     - data.data
     '''
 
+    # Read Parameters
+    parameters = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    X2 = int(parameters[30])
+
     # Data Reading
     files = sorted([file for file in os.listdir(path + 'Microstates') if file not in ['Initial.txt', '.ipynb_checkpoints']])
     Ωm, μ = np.loadtxt(path + 'Parameters/Intrinsic.txt', usecols=(2, 4), unpack=True)
     t     = np.loadtxt(path + 'Signals.txt', usecols=(0)) # Time
-    M     = np.zeros((len(t), 3))                         # Volumentric Magnetization
-    Em1   = np.zeros((len(t), 3))                         # One-Particle Magnetic Moment (Vector)
-    En1   = np.zeros((len(t), 3))                         # One-Particle Easy Axis
+    M     = np.zeros((X2, 3))                             # Volumentric Magnetization
+    Em1   = np.zeros((X2, 3))                             # One-Particle Magnetic Moment (Vector)
+    En1   = np.zeros((X2, 3))                             # One-Particle Easy Axis
     Vm    = np.sum(Ωm)                                    # Total Core Volume
     j     = np.random.randint(0, len(Ωm))                 # Random Particle
 
@@ -82,6 +87,11 @@ def data_Microstates(path):
                fmt = ['%22.15e', '%22.15e', '%22.15e','%22.15e', '%22.15e', '%22.15e'],
                header = '%20s %22s %22s %22s %22s %22s'
                          %('Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', 'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'))    
+
+    # Add Physical Observables to Summary File    
+    with open(path + 'Summary.txt', 'a') as file: 
+        file.write(f'\n') 
+        file.write(f'        Vm: {Vm:21.15e} m3') 
     
     return None
 
@@ -97,8 +107,8 @@ def data_MvsH(path):
 
     Output:
     - None
-    - M(t,H;T) 
-    - Summary File
+    - M(t,H;T).txt
+    - Summary.txt
 
     Used by:
     - data.data
@@ -112,10 +122,10 @@ def data_MvsH(path):
     files = sorted([file for file in os.listdir(path + 'Microstates') if file not in ['Initial.txt', 'Saturation.txt', '.ipynb_checkpoints']])
     Ωm, μ = np.loadtxt(path + 'Parameters/Intrinsic.txt', usecols=(2, 4), unpack=True)
     t_H   = np.loadtxt(path + 'Signals.txt')
-    t     = t_H[:, 0]             # Time
-    H     = t_H[:, 1:4]           # Magnetic Field
-    M     = np.zeros((len(t), 3)) # Volumetric Magnetization
-    Vm    = np.sum(Ωm)            # Total Core Volume
+    t     = t_H[:, 0]         # Time
+    H     = t_H[:, 1:4]       # Magnetic Field
+    M     = np.zeros((X1, 3)) # Volumetric Magnetization
+    Vm    = np.sum(Ωm)        # Total Core Volume
 
     # Data Processing
     for k, file in enumerate(files):
@@ -159,29 +169,42 @@ def data_MvsT(path):
 
     Output:
     - None
-    - M(t,T;H) File
+    - M(t,T;H).txt
+    - ΔM(t,T;H).txt
+    - ρTB(t,T;H).txt
+    - Summary.txt
 
     Used by:
     - data.data
     '''
+
+    # Read Parameters
+    parameters = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    X1 = int(parameters[32])
 
     # Data Reading
     files_ZFC = sorted([file for file in os.listdir(path + 'ZFC Microstates') if file not in ['Initial.txt', 'Cooling.txt', '.ipynb_checkpoints']])
     files_FC  = sorted([file for file in os.listdir(path + 'FC Microstates') if file not in ['Initial.txt', 'Cooling.txt', '.ipynb_checkpoints']])    
     Ωm, μ     = np.loadtxt(path + 'Parameters/Intrinsic.txt', usecols=(2, 4), unpack=True)
     t_T       = np.loadtxt(path + 'Signals.txt', usecols=(0, 4))
-    t         = t_T[:, 0]             # Time
-    T         = t_T[:, 1]             # Temperature
-    M_ZFC     = np.zeros((len(t), 3)) # ZFC Volumetric Magnetization
-    M_FC      = np.zeros((len(t), 3)) # FC Volumetric Magnetization    
-    Vm        = np.sum(Ωm)            # Total Core Volume
+    t         = t_T[:, 0]         # Time
+    T         = t_T[:, 1]         # Temperature
+    M_ZFC     = np.zeros((X1, 3)) # ZFC Volumetric Magnetization
+    M_FC      = np.zeros((X1, 3)) # FC Volumetric Magnetization    
+    Vm        = np.sum(Ωm)        # Total Core Volume
 
     # Data Processing
     for k, (file_ZFC, file_FC) in enumerate(zip(files_ZFC, files_FC)):
         Em_ZFC      = np.loadtxt(path + f'ZFC Microstates/{file_ZFC}', usecols=(0, 1, 2))
         Em_FC       = np.loadtxt(path + f'FC Microstates/{file_FC}', usecols=(0, 1, 2))
         M_ZFC[k, :] = vol_magnetization(Vm, μ, Em_ZFC)
-        M_FC[k, :]  = vol_magnetization(Vm, μ, Em_FC)        
+        M_FC[k, :]  = vol_magnetization(Vm, μ, Em_FC)  
+
+    # Physical Observables  
+    ΔM          = M_ZFC[:, 2] - M_FC[:, 2] # ZFC-FC Magnetization Difference
+    ρTB         = np.gradient(ΔM, T)       # Blocking Temperature Distribution
+    ΔM_f, ρTB_f = ΔM_ρTB(T, ΔM)            # ZFC-FC Magnetization Difference (Fitted) and Blocking Temperature Distribution (Fitted)
+    TB          = T[np.argmax(ρTB_f)]      # Blocking Temperature
 
     # Data Saving
     np.savetxt(path + 'M(t,T;H).txt',
@@ -189,5 +212,23 @@ def data_MvsT(path):
                fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e'],
                header = '%19s %21s %22s %22s %22s %22s %22s %22s'
                          %('t [s]', 'T [K]', 'M_ZFC_x [A/m]', 'M_ZFC_y [A/m]', 'M_ZFC_z [A/m]', 'M_FC_x [A/m]', 'M_FC_y [A/m]', 'M_FC_z [A/m]')) 
+
+    np.savetxt(path + 'ΔM(t,T;H).txt',
+               np.c_[t, T, ΔM, ΔM_f],
+               fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e'],
+               header = '%19s %21s %22s %22s'
+                         %('t [s]', 'T [K]', 'ΔM [A/m]', 'ΔM_fitted [A/m]'))     
+    
+    np.savetxt(path + 'ρTB(t,T;H).txt',
+               np.c_[t, T, ρTB, ρTB_f],
+               fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e'],
+               header = '%19s %21s %22s %22s'
+                         %('t [s]', 'T [K]', 'ρTB [A/mK]', 'ρTB_fitted [A/mK]'))       
+
+    # Add Physical Observables to Summary File    
+    with open(path + 'Summary.txt', 'a') as file: 
+        file.write(f'\n') 
+        file.write(f'        Vm: {Vm:21.15e} m3 \n') 
+        file.write(f'        TB: {TB:21.15e} K    ') 
     
     return None

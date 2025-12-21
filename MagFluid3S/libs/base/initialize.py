@@ -266,14 +266,14 @@ def initial_MvsT(path1, path2, path3, path4, path5):
     Em_ZFC     = configuration_e(N, θM)         # ZFC Magnetic Moments (Vector)
     Em_FC      = configuration_e(N, θM)         # FC Magnetic Moments (Vector)       
     En_ZFC     = configuration_e(N, θN)         # ZFC Easy Axes
-    En_FC      = En_ZFC                         # FC Easy Axes     
+    En_FC      = configuration_e(N, θN)         # FC Easy Axes     
     
-    # Save External Parameters (Scalar) - N, Ti, Tf, HS, HC, HK, α, dt, X1, X2
+    # Save External Parameters (Scalar) - N, Ti, Tf, HS, H0, HK, α, dt, X1, X2
     np.savetxt(path3 + 'External.txt',
-               np.c_[N, Ti, Tf, HS, HC, HK, α, dt, X1, X2],
+               np.c_[N, Ti, Tf, HS, H0, HK, α, dt, X1, X2],
                fmt = ['%10d','%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%9d', '%9d'],
                header = '%7s %21s %21s %21s %21s %21s %21s %21s %8s %8s'
-                         %('N [n.u.]', 'Ti [K]', 'Tf [K]', 'HS [A/m]', 'HC [A/m]',
+                         %('N [n.u.]', 'Ti [K]', 'Tf [K]', 'HS [A/m]', 'H0 [A/m]',
                            'HK [A/m]', 'α [n.u.]', 'dt [s]', 'X1 [n.u.]', 'X2 [n.u.]'))
         
     # Save Intrinsic Parameters (Vector) - Rm, Rp, Ωm, Ωp, μ

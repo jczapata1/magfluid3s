@@ -1,6 +1,7 @@
 # Plot
 from libs.post.utils import si_scale, si_format
 from mpl_toolkits.mplot3d import axes3d
+import matplotlib.gridspec as gridspec
 from libs.base.constants import μ0
 import matplotlib.pyplot as plt
 import numpy as np
@@ -59,7 +60,7 @@ def plot_Microstates(X, path, solver):
 
     Output:
     - None
-    - One Particle Microstates Figure
+    - Figure.jpg
     
     Used by:
     - plot.plot 
@@ -115,7 +116,7 @@ def plot_Microstates(X, path, solver):
     ax2.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')   
     ax2.set_yticks([0.0, np.pi/4.0, np.pi/2.0, 3.0*np.pi/4.0, np.pi])
     ax2.set_yticklabels(['$0$', '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$', '$\\pi$'])
-    ax2.set_ylabel('$\\theta_{\\hat{m},\\hat{n}} \\ [rad]$', fontsize=fs4_)
+    ax2.set_ylabel('$\\theta_{\\hat{m},\\hat{n}}$', fontsize=fs4_)
     ax2.grid(alpha=alp1_) 
     
     # 3rd Axis: EnH vs t                 
@@ -126,7 +127,7 @@ def plot_Microstates(X, path, solver):
     ax3.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')        
     ax3.set_yticks([0.0, np.pi/4.0, np.pi/2.0, 3.0*np.pi/4.0, np.pi])
     ax3.set_yticklabels(['$0$', '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$', '$\\pi$'])    
-    ax3.set_ylabel('$\\theta_{\\hat{n},\\vec{H}} \\ [rad]$', fontsize=fs4_)    
+    ax3.set_ylabel('$\\theta_{\\hat{n},\\vec{H}}$', fontsize=fs4_)    
     ax3.grid(alpha=alp1_) 
     
     # 4th Axis: EmH vs t                 
@@ -137,7 +138,7 @@ def plot_Microstates(X, path, solver):
     ax4.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')      
     ax4.set_yticks([0.0, np.pi/4.0, np.pi/2.0, 3.0*np.pi/4.0, np.pi])
     ax4.set_yticklabels(['$0$', '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$', '$\\pi$'])    
-    ax4.set_ylabel('$\\theta_{\\hat{m},\\vec{H}} \\ [rad]$', fontsize=fs4_)
+    ax4.set_ylabel('$\\theta_{\\hat{m},\\vec{H}}$', fontsize=fs4_)
     ax4.grid(alpha=alp1_) 
     
     # 5th Axis: M vs t
@@ -151,7 +152,7 @@ def plot_Microstates(X, path, solver):
     ax5.set_ylim([-1.1, 1.1]); ax5.grid(alpha=alp1_) 
     
     # Save and Show Figure    
-    plt.savefig(path + 'One_Particle_Microstates.jpg', bbox_inches='tight', pad_inches=0.2, dpi=300)
+    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.2, dpi=300)
     plt.show()  
     
     return None
@@ -168,7 +169,7 @@ def plot_MvsH(path):
 
     Output:
     - None
-    - MvsHvst Figure
+    - Figure.jpg
     
     Used by:
     - plot.plot 
@@ -224,10 +225,10 @@ def plot_MvsH(path):
                    ['$-1$', '', '', '', '', '$-\\frac{1}{2}$', '', '', '', '', '$0$', '', '', '', '', '$\\frac{1}{2}$', '', '', '', '', '$1$'])  
     ax[1].set_ylim([-1.1, 1.1]); ax[1].grid(alpha=alp1_); ax1.set_ylim([-1.1, 1.1]); ax1.grid(alpha=alp1_) 
     h1, l1 = ax[1].get_legend_handles_labels(); h2, l2 = ax1.get_legend_handles_labels() 
-    ax1.legend(h1 + h2, l1 + l2, loc='upper center', facecolor='white', fontsize=fs1_, framealpha=alp3_).set_zorder(2) 
+    ax1.legend(h1 + h2, l1 + l2, loc='upper center', facecolor='white', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2) 
     
-    # Save and Show Figure        
-    plt.savefig(path + 'M(t,H;T).jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
+    # Save and Show Figure       
+    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
     plt.show()  
     
     return None
@@ -244,7 +245,7 @@ def plot_MvsT(path):
 
     Output:
     - None
-    - MvsT Figure
+    - Figure.jpg
     
     Used by:
     - plot.plot 
@@ -252,25 +253,51 @@ def plot_MvsT(path):
 
     # Data Reading
     T, M_ZFC, M_FC = np.loadtxt(path + 'M(t,T;H).txt', usecols=(1, 4, 7), unpack=True)
+    ΔM, ΔM_f       = np.loadtxt(path + 'ΔM(t,T;H).txt', usecols=(2, 3), unpack=True)
+    ρTB, ρTB_f     = np.loadtxt(path + 'ρTB(t,T;H).txt', usecols=(2, 3), unpack=True)
     summary        = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
-    MS, HS, HC     = summary[20], summary[29], summary[30]
+    MS, HS, H0, TB = summary[20], summary[29],  summary[30], summary[35]
     
     # Figure
-    fig, ax = plt.subplots(1, 1, figsize=(3, 3))
+    fig = plt.figure(figsize=(6, 3))
+    gs  = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1, 1], wspace=0.15)
       
     # 1st Axis: M vs T   
-    ax.plot(T, M_ZFC/MS, color='green', linewidth=lw_, label='$ZFC$')    
-    ax.plot(T, M_FC/MS, color='black', linewidth=lw_, label='$FC$')      
-    ax.set_xlabel('$T \\ [K]$', fontsize=fs3_); ax.set_ylabel('$M/M_{S}$', fontsize=fs3_)
-    ax.tick_params(axis='x', bottom=True, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
-    ax.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')
-    ax.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],  ['$0$', '', '', '', '', '$\\frac{1}{2}$', '', '', '', '', '$1$']) 
-    ax.set_xticks(np.arange(0, T[-1] + 50, 50)); ax.set_xlim([-20, T[-1] + 20]); ax.set_ylim([-0.05, 1.05])
-    ax.legend(facecolor='white', loc='upper right', fontsize=fs1_, framealpha=alp3_).set_zorder(2); ax.grid(alpha=alp1_) 
-    ax.set_title('$\\mu_{0}H_{S}=$' + si_format(μ0*HS, unit='T') + ', $\\mu_{0}H_{C}=$' + si_format(μ0*HC, unit='T'), fontsize=fs1_, pad=10)
+    ax0 = fig.add_subplot(gs[0])
+    ax0.plot(T, M_ZFC/MS, color='green', linewidth=lw_, label='$ZFC$')    
+    ax0.plot(T, M_FC/MS, color='black', linewidth=lw_, label='$FC$')    
+    ax0.axvline(TB, color='brown', ls='--', alpha=alp4_, label='$T_{B}$')  
+    ax0.set_xlabel('$T$ [K]', fontsize=fs3_); ax0.set_ylabel('$M/M_{S}$', fontsize=fs3_)
+    ax0.tick_params(axis='x', bottom=True, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax0.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')
+    ax0.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], ['$0$', '', '', '', '', '$\\frac{1}{2}$', '', '', '', '', '$1$']) 
+    ax0.set_xticks(np.arange(0, T[-1] + 50, 50)); ax0.set_xlim([-15, T[-1] + 15]); ax0.set_ylim([-0.05, 1.05])
+    ax0.legend(facecolor='white', loc='upper right', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax0.grid(alpha=alp1_) 
+    ax0.set_title('$\\mu_{0}H_{S}=$' + si_format(μ0*HS, unit='T') + ', $\\mu_{0}H_{0}=$' + si_format(μ0*H0, unit='T'), fontsize=fs1_, pad=10)
+
+    # 2nd Axis: ΔM vs T
+    gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[1], hspace=0.05)
+    ax1 = fig.add_subplot(gs1[0])
+    ax1.scatter(T, ΔM, color='black', s=5, alpha=alp1_, label='Data')
+    ax1.plot(T, ΔM_f, color='black', linewidth=lw_, label='Fit')   
+    ax1.axvline(TB, color='brown', ls='--', alpha=alp4_)  
+    ax1.set_ylabel('$M_{ZFC}-M_{FC}$  [a.u.]', fontsize=fs3_)
+    ax1.set_xticks(np.arange(0, T[-1] + 50, 50)); ax1.set_xlim([-15, T[-1] + 15]); ax1.set_yticks([])
+    ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax1.legend(facecolor='white', loc='upper left', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax1.grid(alpha=alp1_) 
+    ax1.set_title('$T_{B}=$' + si_format(round(TB, 0), unit='K'), fontsize=fs1_, pad=10)
+
+    # 3th Axis: ρTB vs T
+    ax2 = fig.add_subplot(gs1[1])
+    ax2.scatter(T, ρTB, color='black', s=5, alpha=alp1_)
+    ax2.plot(T, ρTB_f, color='black', linewidth=lw_)      
+    ax2.axvline(TB, color='brown', ls='--', alpha=alp4_, label='$T_{B}$')  
+    ax2.set_xlabel('$T$ [K]', fontsize=fs3_); ax2.set_ylabel('$\\rho_{T_{B}}$ [a.u.]', fontsize=fs3_)
+    ax2.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax2.set_xticks(np.arange(0, T[-1] + 50, 50)); ax2.set_xlim([-15, T[-1] + 15]); ax2.set_yticks([]); ax2.grid(alpha=alp1_) 
     
     # Save and Show Figure
-    plt.savefig(path + 'M(t,T;H).jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
     plt.show()  
     
     return None

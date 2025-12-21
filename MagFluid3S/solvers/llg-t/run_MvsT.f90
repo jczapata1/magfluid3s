@@ -22,9 +22,9 @@ program run_MvsT
     use physics, only: T_, H_, ETA_, Z_, SH_, S0_
     use integration, only: evolution
     integer             :: N, X1, X2
-    real*8              :: Ti, Tf, HS, HC, HK, alp, dt
+    real*8              :: Ti, Tf, HS, H0, HK, alp, dt
     real*8, allocatable :: Rm, Rp, Om, Op(:), Mu(:), Em_ZFC(:, :), Em_FC(:, :), En_ZFC(:, :), En_FC(:, :), Z(:), SH(:), S0(:)
-    real*8              :: t, tt, T0, eta, HS_ZFC(0:2), HS_FC(0:2), HC_(0:2)
+    real*8              :: t, tt, T0, eta, HS_ZFC(0:2), HS_FC(0:2), H(0:2)
     character(len=100)  :: header, filename    
     integer             :: i, k1, k2
     
@@ -51,7 +51,7 @@ program run_MvsT
 !----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ! Initial Conditions   
-    read(100, *) N, Ti, Tf, HS, HC, HK, alp, dt, X1, X2                                                                      ! Read External Parameters
+    read(100, *) N, Ti, Tf, HS, H0, HK, alp, dt, X1, X2                                                                      ! Read External Parameters
     allocate(Rm, Rp, Om, Op(0:N-1), Mu(0:N-1), Em_ZFC(0:N-1, 0:2), Em_FC(0:N-1, 0:2), En_ZFC(0:N-1 ,0:2), En_FC(0:N-1, 0:2)) ! Allocate Scalars and Arrays
     allocate(Z(0:N-1), SH(0:N-1), S0(0:N-1))                                                                                 ! Allocate Arrays
     read(101, *) (Rm, Rp, Om, Op(i), Mu(i), i=0,N-1)                                                                         ! Read Internal Parameters
@@ -61,7 +61,7 @@ program run_MvsT
     tt     = X1 * X2 * dt            ! Total Time   
     HS_ZFC = H_(0.0d0, 0.0d0, 0.0d0) ! Magnetic Field (ZFC Saturation)
     HS_FC  = H_(HS, 0.0d0, 0.0d0)    ! Magnetic Field (FC Saturation)
-    HC_    = H_(HC, 0.d0, 0.0d0)     ! Magnetic Field (Cooling)    
+    H      = H_(H0, 0.d0, 0.0d0)     ! Magnetic Field (Cooling)    
          
 !----------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -84,18 +84,18 @@ program run_MvsT
     ! Evolution
     do k1 = 1, X1
         do k2 = 1, X2
-            T0  = T_(Ti, Tf, tt, t)                                                 ! Temperature  
-            eta = ETA_(T0)                                                          ! Solvent Viscosiy
-            Z   = Z_(N, Op, eta)                                                    ! Drag Coefficients
-            SH  = SH_(N, Mu, T0, alp, dt)                                           ! Thermal Field Standard Deviations
-            S0  = S0_(N, Z, T0, dt)                                                 ! Thermal Torque Standard Deviations
-            t   = t + dt                                                            ! Next Time            
-            call evolution(N, Mu, Em_ZFC, En_ZFC, Z, SH, S0, HC_, HC_, HK, alp, dt) ! ZFC Evolution
-            call evolution(N, Mu, Em_FC, En_FC, Z, SH, S0, HC_, HC_, HK, alp, dt)   ! FC Evolution
+            T0  = T_(Ti, Tf, tt, t)                                             ! Temperature  
+            eta = ETA_(T0)                                                      ! Solvent Viscosiy
+            Z   = Z_(N, Op, eta)                                                ! Drag Coefficients
+            SH  = SH_(N, Mu, T0, alp, dt)                                       ! Thermal Field Standard Deviations
+            S0  = S0_(N, Z, T0, dt)                                             ! Thermal Torque Standard Deviations
+            t   = t + dt                                                        ! Next Time            
+            call evolution(N, Mu, Em_ZFC, En_ZFC, Z, SH, S0, H, H, HK, alp, dt) ! ZFC Evolution
+            call evolution(N, Mu, Em_FC, En_FC, Z, SH, S0, H, H, HK, alp, dt)   ! FC Evolution
         end do
 
             ! Save Signals
-            write(106, '(E21.15, E23.15, E23.15, E23.15, E22.15)') t, HC_(:), T0
+            write(106, '(E21.15, E23.15, E23.15, E23.15, E22.15)') t, H(:), T0
 
             ! Save ZFC Evolution Microstates
             write(filename, '(A,I3.3,A)') './solvers/llg-t/temporal/ZFC Microstates/', k1, '.txt'

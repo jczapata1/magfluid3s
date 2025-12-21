@@ -1,7 +1,10 @@
 # Utils
+from sklearn.preprocessing import MinMaxScaler
+from scipy.optimize import curve_fit
+from scipy.special import erf
 import numpy as np
 
-#--------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 # International System Units Scale
 def si_scale(value, unit=''):
@@ -36,7 +39,7 @@ def si_scale(value, unit=''):
             
     return scale, label
 
-#--------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 # International System Units Format
 def si_format(value, unit=''):
@@ -61,7 +64,7 @@ def si_format(value, unit=''):
     
     return text
 
-#--------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 # Volumetric Magnetization
 def vol_magnetization(Vm, μ, Em):
@@ -87,7 +90,7 @@ def vol_magnetization(Vm, μ, Em):
         
     return M
 
-#--------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 # Remanent Magnetization and Coercive Field
 def MR_HC(X0, X1, H, M):
@@ -147,7 +150,7 @@ def MR_HC(X0, X1, H, M):
 
     return MR_u, MR_d, HC_l, HC_r    
 
-#--------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 # MvsH Loop Area
 def MvsH_area(X0, X1, H, M):
@@ -178,3 +181,37 @@ def MvsH_area(X0, X1, H, M):
     A   = A_u - A_l                     # Area
         
     return A
+
+#---------------------------------------------------------------------------------------------------
+
+# ZFC-FC Magnetization Difference and Blocking Temperature Distribution
+def ΔM_ρTB(T, ΔM):
+    '''
+    Calculate and fit the ZFC-FC magnetization difference and the blocking temperature distribution.
+
+    Input:
+    -     T (float, numpy.ndarray[X1]): Temperature List
+    -     ΔM(float, numpy.ndarray[X1]): ZFC-FC Magnetization Difference List
+
+    Output: 
+    -  ΔM_f (float, numpy.ndarray[X1]): ZFC-FC Magnetization Difference List (Fitted)
+    - ρTB_f (float, numpy.ndarray[X1]): Blocking Temperature Distribution List (Fitted)  
+
+    Used by:
+    - data.data_MvsT    
+    '''    
+
+    # Feature Scaling
+    sc = MinMaxScaler()
+    ΔM = sc.fit_transform(ΔM.reshape(-1, 1)).ravel()
+    
+    # Model
+    model         = lambda T, A, B, C, D: A + B * erf((np.log(T) - C) / (D * np.sqrt(2.0)))
+    parameters, _ = curve_fit(model, T, ΔM, p0=[0.5, 0.5, np.log(np.median(T)), 0.5])
+
+    # Predictions
+    ΔM_f  = model(T, *parameters)    
+    ΔM_f  = sc.inverse_transform(ΔM_f.reshape(-1, 1)).ravel()
+    ρTB_f = np.gradient(ΔM_f, T)                                  
+                             
+    return ΔM_f, ρTB_f

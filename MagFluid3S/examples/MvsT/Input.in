@@ -14,9 +14,9 @@ HK   : (2.0*Keff)/(μ0*MS)
 # External Parameters
 N    : 1000
 Ti   : 4.0
-Tf   : 400.0 
+Tf   : 350.0 
 HS   : 1.0/μ0
-HC   : 5.0e-3/μ0
+H0   : 5.0e-3/μ0
 
 # Time Parameters
 dt   : 1.0e-11

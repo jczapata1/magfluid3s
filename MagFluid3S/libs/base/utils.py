@@ -103,7 +103,7 @@ def summary_file(parameters, path, simulation):
             file.write(f'        Ti: {parameters["Ti"]:21.15e} K   \n')
             file.write(f'        Tf: {parameters["Tf"]:21.15e} K   \n')
             file.write(f'        HS: {parameters["HS"]:21.15e} A/m \n')
-            file.write(f'        HC: {parameters["HC"]:21.15e} A/m \n')
+            file.write(f'        H0: {parameters["H0"]:21.15e} A/m \n')
   
         # Time and Steps
         file.write(f'        dt: {parameters["dt"]:21.15e} s       \n')
