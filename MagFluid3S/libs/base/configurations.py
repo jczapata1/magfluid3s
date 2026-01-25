@@ -1,5 +1,4 @@
 # Configurations
-from numba.typed import List
 from numba import njit
 import numpy as np
 

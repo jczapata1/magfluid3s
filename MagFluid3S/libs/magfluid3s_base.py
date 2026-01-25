@@ -5,7 +5,7 @@ from libs.decorators import benchmark
 from libs.base.run import run
 import os
 
-#------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 # MagFLuid3S Base
 class MagFluid3SBase:
@@ -23,17 +23,20 @@ class MagFluid3SBase:
         -    input_file (str, optional): Input File Path
         - output_folder (str, optional): Output Folder Path
         '''
-        
+
+        # Primary
         self.simulation    = simulation
         self.solver        = solver
-        self.input_path    = (input_file or os.path.join('.', 'output', 'examples', simulation, 'Input.in'))
-        self.output_path   = (output_folder or os.path.join('.', 'output', 'examples', simulation) + os.sep)
-        self.temporal_path = os.path.join('.', 'solvers', solver, 'temporal') + os.sep
+        self.input_file    = (input_file or os.path.join('.', 'examples', simulation, 'Input.in'))
+        self.output_folder = (output_folder or os.path.join('.', 'examples', simulation) + os.sep)
+
+        # Secondary
+        self.temporal_folder = os.path.join('.', 'solvers', solver, 'temporal') + os.sep
 
     @benchmark
     def initialize(self):
         '''Read MagFluid3S/libs/base/initialize.py/initialize documentation.'''
-        return initialize(self.input_path, self.temporal_path, self.simulation)
+        return initialize(self.input_file, self.temporal_folder, self.simulation)
     
     @benchmark
     def run(self):
@@ -43,4 +46,4 @@ class MagFluid3SBase:
     @benchmark
     def make_files(self):
         '''Read MagFluid3S/libs/base/utils.py/make_files documentation.'''
-        return make_files(self.temporal_path, self.output_path, self.input_path) 
+        return make_files(self.temporal_folder, self.output_folder, self.input_file) 

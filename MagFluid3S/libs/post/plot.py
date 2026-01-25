@@ -10,7 +10,7 @@ import numpy as np
 
 # Definitions
 lw_   = 1.3
-fs0_  = 5.0; fs1_  = 6.5; fs2_  = 7.5; fs3_  = 8.0; fs4_  = 10.0
+fs0_  = 5.0; fs1_  = 6.5; fs2_  = 7.5; fs3_  = 8.0; fs4_ = 10.0
 alp1_ = 0.3; alp2_ = 0.2; alp3_ = 1.0; alp4_ = 0.5
 plt.rcParams['xtick.labelsize'] = fs1_
 plt.rcParams['ytick.labelsize'] = fs1_
@@ -24,9 +24,9 @@ def plot(path, simulation, **kwargs):
     Process the plots based on the specified simulation type.
 
     Input:
-    -                    path (str): Output Path
-    -              simulation (str): Simulation Type
-    - kwargs ((int, str), tuple[2]): Microstates Plot Arguments
+    -                       path (str): Output Path
+    -                 simulation (str): Simulation Type
+    - kwargs ((int, str), tuple[2, 1]): Microstates Plot Arguments Tuple
 
     Output:
     - None
@@ -60,7 +60,7 @@ def plot_Microstates(X, path, solver):
 
     Output:
     - None
-    - Figure.jpg
+    - Microstates Figure
     
     Used by:
     - plot.plot 
@@ -169,7 +169,7 @@ def plot_MvsH(path):
 
     Output:
     - None
-    - Figure.jpg
+    - MvsH Figure
     
     Used by:
     - plot.plot 
@@ -245,7 +245,7 @@ def plot_MvsT(path):
 
     Output:
     - None
-    - Figure.jpg
+    - MvsT Figure
     
     Used by:
     - plot.plot 

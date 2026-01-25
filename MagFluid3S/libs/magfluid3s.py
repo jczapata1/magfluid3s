@@ -15,9 +15,9 @@ class MagFluid3S(MagFluid3SBase):
     @benchmark
     def make_summary(self):
         '''Read MagFluid3S/libs/post/data.py/data documentation.'''
-        return data(self.output_path, self.simulation)
+        return data(self.output_folder, self.simulation)
     
     @benchmark
     def plot_summary(self, X=2):
         '''Read MagFluid3S/libs/post/plot.py/plot documentation.'''
-        return plot(self.output_path, self.simulation, args=(X, self.solver))
+        return plot(self.output_folder, self.simulation, args=(X, self.solver))

@@ -1,5 +1,5 @@
 # Initialize
-from libs.base.utils import mean_std_error, summary_file, folder
+from libs.base.utils import mean_std_error, summary_file, make_folder
 from libs.base.constants import π, μ0, γ
 from libs.base.configurations import *
 import numpy as np
@@ -14,10 +14,10 @@ def read_parameters(path):
     Read the simulation parameters from a input file.
 
     Input:
-    -                 path (str): Input Path
+    -                      path (str): Input Path
 
     Output:
-    - parameters (?, dict[?, ?]): Parameters of Simulation
+    - parameters (str, ?, dict[?, ?]): Parameters of Simulation Dict
 
     Used by:
     - initialize.initial_Microstates
@@ -49,8 +49,6 @@ def read_parameters(path):
     parameters['ΩM'] = (4.0*parameters['π']/3.0) * parameters['RM']**3
     parameters['ΩP'] = (4.0*parameters['π']/3.0) * parameters['RP']**3
     
-    file.close()
-    
     return parameters             
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -78,20 +76,20 @@ def initialize(path1, path2, simulation):
     if (simulation == 'Microstates'):
         path3 = os.path.join(path2, 'Parameters') + os.sep
         path4 = os.path.join(path2, 'Microstates') + os.sep
-        folder(path3); folder(path4)
+        make_folder(path3); make_folder(path4)
         initial_Microstates(path1, path2, path3, path4)
     
     elif (simulation == 'MvsH'): 
         path3 = os.path.join(path2, 'Parameters') + os.sep
         path4 = os.path.join(path2, 'Microstates') + os.sep
-        folder(path3); folder(path4)
+        make_folder(path3); make_folder(path4)
         initial_MvsH(path1, path2, path3, path4)
         
     elif (simulation == 'MvsT'):
         path3 = os.path.join(path2, 'Parameters') + os.sep
         path4 = os.path.join(path2, 'ZFC Microstates') + os.sep
         path5 = os.path.join(path2, 'FC Microstates') + os.sep       
-        folder(path3); folder(path4); folder(path5)
+        make_folder(path3); make_folder(path4); make_folder(path5)
         initial_MvsT(path1, path2, path3, path4, path5)
         
     else:

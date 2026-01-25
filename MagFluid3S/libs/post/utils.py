@@ -25,8 +25,8 @@ def si_scale(value, unit=''):
     '''    
 
     # SI Prefixes
-    prefixes     = [(1.0e9, 'G'), (1.0e6, 'M'), (1.0e3, 'k'), (1.0e0, ''), 
-                    (1.0e-3, 'm'), (1.0e-6, 'µ'), (1.0e-9, 'n'), (1.0e-12, 'p')]
+    prefixes = [(1.0e9, 'G'), (1.0e6, 'M'), (1.0e3, 'k'), (1.0e0, ''), 
+                (1.0e-3, 'm'), (1.0e-6, 'µ'), (1.0e-9, 'n'), (1.0e-12, 'p')]
 
     # Default Values
     scale, label = 1.0, unit
@@ -98,16 +98,16 @@ def MR_HC(X0, X1, H, M):
     Calculate the remanent magnetization and the coercive field.
 
     Input:
-    -                     X0 (int): Number of Loops 
-    -                     X1 (int): Curve Points    
-    - H (float, numpy.ndarray[X1]): Magnetic Field List
-    - M (float, numpy.ndarray[X1]): Volumetric Magnetization List
+    -                        X0 (int): Number of Loops 
+    -                        X1 (int): Curve Points    
+    - H (float, numpy.ndarray[X1, 1]): Magnetic Field List
+    - M (float, numpy.ndarray[X1, 1]): Volumetric Magnetization List
 
     Output:
-    -                 MR_u (float): Remanent Magnetization (Up)
-    -                 MR_d (float): Remanent Magnetization (Down)
-    -                 HC_l (float): Coercive Field (Left)
-    -                 HC_r (float): Coercive Field (Right)
+    -                    MR_u (float): Remanent Magnetization (Up)
+    -                    MR_d (float): Remanent Magnetization (Down)
+    -                    HC_l (float): Coercive Field (Left)
+    -                    HC_r (float): Coercive Field (Right)
     
     Used by:
     - data.data_MvsH 
@@ -158,13 +158,13 @@ def MvsH_area(X0, X1, H, M):
     Calculate the MvsH loop area.
 
     Input:
-    -                     X0 (int): Number of Loops 
-    -                     X1 (int): Curve Points    
-    - H (float, numpy.ndarray[X1]): Magnetic Field List
-    - M (float, numpy.ndarray[X1]): Volumetric Magnetization List
+    -                        X0 (int): Number of Loops 
+    -                        X1 (int): Curve Points    
+    - H (float, numpy.ndarray[X1, 1]): Magnetic Field List
+    - M (float, numpy.ndarray[X1, 1]): Volumetric Magnetization List
 
     Output:
-    -                    A (float): MvsH Loop Area
+    -                       A (float): MvsH Loop Area
     
     Used by:
     - data.data_MvsH 
@@ -190,12 +190,12 @@ def ΔM_ρTB(T, ΔM):
     Calculate and fit the ZFC-FC magnetization difference and the blocking temperature distribution.
 
     Input:
-    -     T (float, numpy.ndarray[X1]): Temperature List
-    -     ΔM(float, numpy.ndarray[X1]): ZFC-FC Magnetization Difference List
+    -     T (float, numpy.ndarray[X1, 1]): Temperature List
+    -     ΔM(float, numpy.ndarray[X1, 1]): ZFC-FC Magnetization Difference List
 
     Output: 
-    -  ΔM_f (float, numpy.ndarray[X1]): ZFC-FC Magnetization Difference List (Fitted)
-    - ρTB_f (float, numpy.ndarray[X1]): Blocking Temperature Distribution List (Fitted)  
+    -  ΔM_f (float, numpy.ndarray[X1, 1]): ZFC-FC Magnetization Difference List (Fitted)
+    - ρTB_f (float, numpy.ndarray[X1, 1]): Blocking Temperature Distribution List (Fitted)  
 
     Used by:
     - data.data_MvsT    

@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 import os
 
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
 # Mean, Standard Deviation, and Margin Error
 def mean_std_error(X, data, stds=np.array([])):
@@ -39,7 +39,7 @@ def mean_std_error(X, data, stds=np.array([])):
         
     return mean, std, error 
 
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
 # Summary File
 def summary_file(parameters, path, simulation):
@@ -47,9 +47,9 @@ def summary_file(parameters, path, simulation):
     Make a summary file with the simulation parameters.
 
     Input:
-    - parameters (?, dict[?]): Parameters of Simulation
-    -              path (str): Output Path
-    -        simulation (str): Simulation Type
+    - parameters ((str, ?), dict[?, ?]): Parameters of Simulation Dict
+    -                        path (str): Output Path
+    -                  simulation (str): Simulation Type
 
     Output:
     - None
@@ -121,15 +121,13 @@ def summary_file(parameters, path, simulation):
             file.write(f'        X1: {parameters["X1"]:21} n.u.    \n')
             file.write(f'        X2: {parameters["X2"]:21} n.u.    \n')
             file.write(f'         f: {parameters["f"]:21.15e} Hz     ')
-      
-    file.close() 
-    
+          
     return None  
 
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
-# Folder
-def folder(path):
+# Make Folder
+def make_folder(path):
     '''
     Create a folder for a given path.
 
@@ -142,6 +140,7 @@ def folder(path):
 
     Used by:
     - initialize.initialize
+    - magfluid3s_auto.MagFluid3SAuto.run
     '''   
 
     # Create
@@ -155,7 +154,7 @@ def folder(path):
 
     return None
 
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
 # Clean Folder
 def clean_folder(path, keep=[]):
@@ -163,8 +162,8 @@ def clean_folder(path, keep=[]):
     Clean a folder, except specified items.
 
     Input:
-    -        path (str): Folder Path
-    -  keep (list[str]): Excluded Items List
+    -              path (str): Folder Path
+    -  keep (str, list[?, 1]): Excluded Items List
 
     Output:
     - None
@@ -189,7 +188,7 @@ def clean_folder(path, keep=[]):
 
     return None
 
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
 # Make Files
 def make_files(path1, path2, path3):

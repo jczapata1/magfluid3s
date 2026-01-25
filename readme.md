@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/Version-1.2.0-brightgreen.svg)
+![Version](https://img.shields.io/badge/Version-1.3.0-brightgreen.svg)
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)
 ![Fortran](https://img.shields.io/badge/Fortran-any-red.svg)
 ![OpenMP](https://img.shields.io/badge/OpenMP-any-F7931E.svg)
@@ -21,7 +21,7 @@ Visit [MagFluid3S-Data](https://github.com/jczapata1/magfluid3s-data).
 
 ## Documentation
 
-Find the full documentation in the [User Guide v1.2.0](./User_Guide_v1.2.0.pdf).
+Find the full documentation in the [User Guide v1.3.0](./User_Guide_v1.3.0.pdf).
 
 ## Installation
 
@@ -34,7 +34,7 @@ Download and install [Docker Desktop](https://www.docker.com/get-started).
 Open a terminal (PowerShell on Windows, or a terminal on Linux/macOS) and run:
 
 ```bash
-docker run -it --name mf3s -p 127.0.0.1:8888:8888 jczapata1/magfluid3s:v1.2.0
+docker run -it --name mf3s -p 127.0.0.1:8888:8888 jczapata1/magfluid3s:v1.3.0
 ```
 
 To reopen the app later, run:
@@ -73,6 +73,6 @@ BibTeX:
 
 ## Copyright and License
 
-Copyright © 2025 J. C. Zapata. All rights reserved.
+Copyright © 2025-2026 J. C. Zapata. All rights reserved.
 
 This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.

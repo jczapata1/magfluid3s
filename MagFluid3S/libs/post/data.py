@@ -45,9 +45,9 @@ def data_Microstates(path):
 
     Output:
     - None
-    - M(t;H,T).txt
-    - One_Particle_Microstates.txt
-    - Summary.txt
+    - M(t;H,T) File
+    - One Particle Microstates File
+    - Summary File
 
     Used by:
     - data.data
@@ -107,8 +107,8 @@ def data_MvsH(path):
 
     Output:
     - None
-    - M(t,H;T).txt
-    - Summary.txt
+    - M(t,H;T) File
+    - Summary File
 
     Used by:
     - data.data
@@ -169,10 +169,10 @@ def data_MvsT(path):
 
     Output:
     - None
-    - M(t,T;H).txt
-    - ΔM(t,T;H).txt
-    - ρTB(t,T;H).txt
-    - Summary.txt
+    - M(t,T;H) File
+    - ΔM(t,T;H) File
+    - ρTB(t,T;H) File
+    - Summary File
 
     Used by:
     - data.data

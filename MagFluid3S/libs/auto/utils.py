@@ -1,0 +1,87 @@
+# Utils
+import random
+import shutil
+import re
+
+#-------------------------------------------------------------------------------------------------
+
+# Make Input File
+def make_input_file(path1, path2, properties):
+    '''
+    Make an input file from a template.
+    
+    Input:
+    -                      path1 (str): Input Path
+    -                      path2 (str): Output Path
+    - properties ((str, ?), dict[?, ?]: Physical Properties Dict
+    
+    Output:
+    - None
+    - Input File
+
+    Used by:
+    - magfluid3s_auto.MagFluid3SAuto.run
+    '''
+    
+    # Create Input File      
+    with open(path1, 'r') as file1, open(path2, 'w') as file2: 
+        
+        for line in file1:
+            for (sym, value) in properties.items():
+                
+                match = re.match(rf'({sym}\s*:\s*)([\d.eE+\-/*π*Keffμ0*MSγ*HKX1*X2*dt]+)', line)
+                if (match): line = match.group(1) + f'{value:0.15e}' + '\n'; break
+            
+            file2.writelines(line)     
+
+    return None
+    
+#-------------------------------------------------------------------------------------------------
+
+# Make Identifiers
+def make_ids(X, bits=32):
+    '''
+    Generate random hexadecimal identifiers.
+
+    Input:
+    -               X (int): Data Size
+    -            bits (int): Bits
+
+    Output:
+    - ids (str, list[X, 1]): Hexadecimal Identifiers List
+
+    Used by:
+    - magfluid3s_auto.MagFluid3SAuto.run
+    '''
+
+    if (bits == 32):
+        ids = [f'{random.getrandbits(32):08x}' for i in range(X)]
+    elif (bits == 64):
+        ids = [f'{random.getrandbits(64):016x}' for i in range(X)]
+    else:
+        raise ValueError("Invalid Bits Value!. Use 32 or 64.")
+
+    return ids
+
+#-------------------------------------------------------------------------------------------------
+
+# Folder to Zip
+def folder_zip(path):
+    '''
+    Compresses a folder into a ZIP.
+
+    Input:
+    - path (str): Folder Path
+
+    Output:
+    - None
+    - Folder ZIP 
+
+    Used by:
+    - magfluid3s_auto.MagFluid3SAuto.run
+    '''   
+
+    shutil.make_archive(path, 'zip', path) # Folder to ZIP
+    shutil.rmtree(path)                    # Delete Folder   
+
+    return None
