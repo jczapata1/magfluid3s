@@ -1,7 +1,7 @@
 # Decorators
 from time import perf_counter
 
-#------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------
 
 # Benchmark
 def benchmark(function):
@@ -21,15 +21,20 @@ def benchmark(function):
     - magfluid3s.MagFluid3S.make_summary
     - magfluid3s.MagFluid3S.plot_summary
     - magfluid3s_auto.MagFluid3SAuto.run
+    - magfluid3s_auto.MagFluid3S.make_summary
+    - magfluid3s_auto.MagFluid3S.plot_summary
     '''
 
     # Wrapper
     def wrapper(*args, **kwargs):
-        ti           = perf_counter()            # Initial Time
-        result       = function(*args, **kwargs) # Execute Base Function
-        tf           = perf_counter()            # Final Time
-        wrapper.time = round(tf - ti, 2)         # Total Time
-        print(f'{function.__name__.title().replace('_', ' '):>12}: {wrapper.time:6.2f} s')
+        
+        ti            = perf_counter()             # Initial Time
+        result        = function(*args, **kwargs)  # Execute Base Function
+        tf            = perf_counter()             # Final Time
+        wrapper.time  = round(tf - ti, 2)          # Total Time
+        class_name    = args[0].__class__.__name__ # Class Name
+        function_name = function.__name__          # Function Name
+        print(f'{class_name:>14} - {function_name.title().replace('_', ' '):>12}: {wrapper.time:6.2f} s')
         
         return result
 

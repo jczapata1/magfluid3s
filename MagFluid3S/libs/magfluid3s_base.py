@@ -36,7 +36,7 @@ class MagFluid3SBase:
     @benchmark
     def initialize(self):
         '''Read MagFluid3S/libs/base/initialize.py/initialize documentation.'''
-        return initialize(self.input_file, self.temporal_folder, self.simulation)
+        return initialize(self.simulation, self.input_file, self.temporal_folder)
     
     @benchmark
     def run(self):
@@ -46,4 +46,4 @@ class MagFluid3SBase:
     @benchmark
     def make_files(self):
         '''Read MagFluid3S/libs/base/utils.py/make_files documentation.'''
-        return make_files(self.temporal_folder, self.output_folder, self.input_file) 
+        return make_files(self.input_file, self.output_folder, self.temporal_folder) 

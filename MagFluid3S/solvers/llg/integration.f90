@@ -24,7 +24,7 @@ module integration
         ! - None 
         !
         ! Used by:
-        ! - integration.evolution
+        ! - llg.integration.evolution
         
         use math, only: rv_normal, dot_prod, cross_prod
         real*8, intent(in)    :: Eni(0:2), SHi, Ha(0:2), Hb(0:2), HK, Ca, Cb, dt

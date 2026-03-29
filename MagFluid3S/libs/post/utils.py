@@ -20,8 +20,8 @@ def si_scale(value, unit=''):
     -   label (str): Prefixed Unit Label
     
     Used by:
-    - plot.plot_Microstates 
-    - plot.plot_MvsH 
+    - post.plot.plot_Microstates 
+    - post.plot.plot_MvsH 
     '''    
 
     # SI Prefixes
@@ -54,9 +54,9 @@ def si_format(value, unit=''):
     -    text (str): Formatted Value
     
     Used by:
-    - plot.plot_Microstates 
-    - plot.plot_MvsH 
-    - plot.plot_MvsT
+    - post.plot.plot_Microstates 
+    - post.plot.plot_MvsH 
+    - post.plot.plot_MvsT
     '''    
     
     scale, label = si_scale(value, unit)        # Identify Scale and Prefix      
@@ -80,9 +80,9 @@ def vol_magnetization(Vm, μ, Em):
     -  M (float, numpy.ndarray[3, 1]): Volumetric Magnetization
     
     Used by:
-    - data.data_Microstates 
-    - data.data_MvsH 
-    - data.data_MvsT
+    - post.data.data_Microstates 
+    - post.data.data_MvsH 
+    - post.data.data_MvsT
     '''    
     
     μ = μ.reshape(-1, 1)          # Reshape Array
@@ -110,14 +110,14 @@ def MR_HC(X0, X1, H, M):
     -                    HC_r (float): Coercive Field (Right)
     
     Used by:
-    - data.data_MvsH 
+    - post.data.data_MvsH 
     '''
 
     # latest Loop
-    l1 = (X0-1) * X1 # Initial Point
-    l2 = X0 * X1     # Final Point
-    H  = H[l1:l2]    # Magnetic Field
-    M  = M[l1:l2]    # Volumetric Magnetization
+    l1 = (X0 - 1) * X1 # Initial Point
+    l2 = X0 * X1       # Final Point
+    H  = H[l1:l2]      # Magnetic Field
+    M  = M[l1:l2]      # Volumetric Magnetization
 
     # Compute MR and HC
     for i in range(l2-l1):
@@ -167,7 +167,7 @@ def MvsH_area(X0, X1, H, M):
     -                       A (float): MvsH Loop Area
     
     Used by:
-    - data.data_MvsH 
+    - post.data.data_MvsH 
     '''
 
     # Latest Loop
@@ -198,7 +198,7 @@ def ΔM_ρTB(T, ΔM):
     - ρTB_f (float, numpy.ndarray[X1, 1]): Blocking Temperature Distribution List (Fitted)  
 
     Used by:
-    - data.data_MvsT    
+    - post.data.data_MvsT    
     '''    
 
     # Feature Scaling

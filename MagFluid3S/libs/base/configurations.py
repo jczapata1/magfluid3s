@@ -19,9 +19,9 @@ def configuration_Rm(N, RM, σRM):
     - Rm (float, numpy.ndarray[N, 1]): Core Radii List
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
     '''
     
     Rm = np.ones(N) # Rm-List
@@ -49,9 +49,9 @@ def configuration_Rp(N, δ, σδ, Rm):
     - Rp (float, numpy.ndarray[N, 1]): Particle Radii List
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
     '''
     
     Rp = np.zeros(N) # Rp-List
@@ -77,9 +77,9 @@ def configuration_Ω(N, R):
     - Ω (float, numpy.ndarray[N, 1]): Core/Particle Volumes List
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
     '''    
         
     Ω = np.zeros(N) # Ω-List
@@ -106,9 +106,9 @@ def configuration_μ(N, MS, Ωn):
     -  μ (float, numpy.ndarray[N, 1]): Magnetic Moments (Magnitude) List
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT 
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT 
     '''     
     
     μ = np.zeros(N) # μ-List
@@ -134,9 +134,9 @@ def configuration_e(N, θ):
     - e (float, numpy.ndarray[N, 3]): Random/Oriented Unitary Vectors List
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
     '''     
         
     e = np.zeros((N, 3)) # e-List   

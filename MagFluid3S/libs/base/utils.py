@@ -4,42 +4,45 @@ import numpy as np
 import shutil
 import os
 
-#---------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
-# Mean, Standard Deviation, and Margin Error
-def mean_std_error(X, data, stds=np.array([])):
+# Mean, Standard Deviation, and Margin of Error
+def mean_std_error(X, data, stds=None):
     '''
-    Calculate the mean, standard deviation, and the margin error for a given dataset.
+    Calculate the mean, standard deviation, and the margin of error for a given dataset.
 
     Input:
     -                          X (int): Data Size
     - data (float, numpy.narray[?, 1]): Data List
-    - stds (float, numpy.narray[?, 1]): Samples Standard Deviations List
+    - stds (float, numpy.narray[?, 1]): Standard Deviations List
 
     Output:
     -                     mean (float): Mean    
     -                      std (float): Standard Deviation        
-    -                    error (float): Margin Error    
+    -                    error (float): Margin of Error 
     
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
+    - auto.data.data_MvsH
     '''  
 
-    if (len(stds) == 0):
-        m, n = 1, X                                 # t-Student Parameters
-        std  = np.std(data, ddof=1)                 # Standard Deviation
+    if (stds is None):
+        m   = 1                                                    # t-Student m-Parameter 
+        n   = X                                                    # t-Student n-Parameter 
+        std = np.std(data, ddof=1)                                 # Standard Deviation
     else:
-        m, n = len(stds), len(stds)                 # t-Student Parameters
-        std  = np.sqrt(np.sum(np.array(stds)**2)/n) # Standard Deviation
+        m   = len(stds)                                            # t-Student m-Parameter                                    
+        n   = m*X                                                  # t-Student n-Parameter
+        std = np.sqrt(np.sum((X-1) * np.array(stds)**2) / (n - 1)) # Pooled Variance
 
-    mean  = np.mean(data)                                # Mean
-    error = t.ppf(0.9950, df=m*(X-1)) * (std/np.sqrt(n)) # Margin Error (99%)
+    mean  = np.mean(data)                            # Mean
+    error = t.ppf(0.9950, df=n-1) * (std/np.sqrt(n)) # Margin of Error (99%)
         
     return mean, std, error 
 
-#---------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
 # Summary File
 def summary_file(parameters, path, simulation):
@@ -56,12 +59,12 @@ def summary_file(parameters, path, simulation):
     - Summary File
     
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT
     '''
     
-    with open(path + 'Summary.txt', 'w') as file:     
+    with open(os.path.join(path, 'Summary.txt'), 'w') as file:     
         file.write('# Summary\n\n')
         file.write('# Parameter                 Value Unit\n')
     
@@ -85,7 +88,7 @@ def summary_file(parameters, path, simulation):
         file.write(f'      <Ωp>: {parameters["<Ωp>"]:21.15e} m3    \n')
         file.write(f'     σ<Ωp>: {parameters["σ<Ωp>"]:21.15e} m3   \n')          
         file.write(f'     <Ωp>e: {parameters["<Ωp>e"]:21.15e} m3   \n')    
-        file.write(f'        ρM: {parameters["ρM"]:21.15e} kg/m3   \n')
+        file.write(f'        ρM: {parameters["ρM"]:21.15e} g/cm3   \n')
         file.write(f'        MS: {parameters["MS"]:21.15e} A/m     \n')
         file.write(f'      Keff: {parameters["Keff"]:21.15e} J/m3  \n')
         file.write(f'        HK: {parameters["HK"]:21.15e} A/m     \n')
@@ -124,7 +127,7 @@ def summary_file(parameters, path, simulation):
           
     return None  
 
-#---------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
 # Make Folder
 def make_folder(path):
@@ -139,7 +142,7 @@ def make_folder(path):
     - Folder     
 
     Used by:
-    - initialize.initialize
+    - base.initialize.initialize
     - magfluid3s_auto.MagFluid3SAuto.run
     '''   
 
@@ -154,7 +157,7 @@ def make_folder(path):
 
     return None
 
-#---------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
 # Clean Folder
 def clean_folder(path, keep=[]):
@@ -169,7 +172,7 @@ def clean_folder(path, keep=[]):
     - None
 
     Used by:
-    - utils.make_files 
+    - base.utils.make_files 
     '''
     
     for item in os.listdir(path):
@@ -188,7 +191,7 @@ def clean_folder(path, keep=[]):
 
     return None
 
-#---------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
 # Make Files
 def make_files(path1, path2, path3):
@@ -196,9 +199,9 @@ def make_files(path1, path2, path3):
     Move folder contents to another.
 
     Input:
-    - path1 (str): Source Path
-    - path2 (str): Destination Path    
-    - path3 (str): Input Path        
+    - path1 (str): Input Path    
+    - path2 (str): Output Path    
+    - path3 (str): Source Path    
 
     Output:
     - None 
@@ -208,13 +211,13 @@ def make_files(path1, path2, path3):
     - magfluid3s.MagFluid3S.make_files    
     '''   
     
-    # Clean Destination (Except Input File)
-    clean_folder(path2, keep=[os.path.basename(path3)])
+    # Clean Output (Except Input File)
+    clean_folder(path2, keep=[os.path.basename(path1)])
     
-    # Move from Source to Destination
-    shutil.copytree(path1, path2, dirs_exist_ok=True)
+    # Move from Source to Output
+    shutil.copytree(path3, path2, dirs_exist_ok=True)
     
     # Clean Source
-    clean_folder(path1)                         
+    clean_folder(path3)                         
  
     return None

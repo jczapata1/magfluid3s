@@ -20,9 +20,9 @@ def read_parameters(path):
     - parameters (str, ?, dict[?, ?]): Parameters of Simulation Dict
 
     Used by:
-    - initialize.initial_Microstates
-    - initialize.initial_MvsH
-    - initialize.initial_MvsT    
+    - base.initialize.initial_Microstates
+    - base.initialize.initial_MvsH
+    - base.initialize.initial_MvsT    
     '''
 
     # Parameters
@@ -54,14 +54,14 @@ def read_parameters(path):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 # Initialize
-def initialize(path1, path2, simulation):
+def initialize(simulation, path1, path2):
     '''
     Initialize the parameters and the initial conditions based on the specified simulation type.
 
     Input:
+    - simulation (str): Simulation Type
     -      path1 (str): Input Path
     -      path2 (str): Output Path   
-    - simulation (str): Simulation Type
 
     Output:
     - None
@@ -118,7 +118,7 @@ def initial_Microstates(path1, path2, path3, path4):
     - Summary File
 
     Used by:
-    - initialize.initialize    
+    - base.initialize.initialize    
     '''   
     
     # Set Parameters and Initial Conditions
@@ -133,31 +133,31 @@ def initial_Microstates(path1, path2, path3, path4):
     En         = configuration_e(N, θN)         # Easy Axes
      
     # Save External Parameters (Scalar) - N, T0, H0, HK, α, dt, X2
-    np.savetxt(path3 + 'External.txt',
+    np.savetxt(os.path.join(path3, 'External.txt'),
                np.c_[N, T0, H0, HK, α, dt, X2],
                fmt = ['%10d', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%9d'],
                header = '%7s %21s %21s %21s %21s %21s %8s'
                          %('N [n.u.]', 'T0 [K]', 'H0 [A/m]', 'HK [A/m]', 'α [n.u.]', 'dt [s]', 'X2 [n.u.]')) 
         
     # Save Intrinsic Parameters (Vector) - Rn, Rp, Ωm, Ωp, μ
-    np.savetxt(path3 + 'Intrinsic.txt',
+    np.savetxt(os.path.join(path3, 'Intrinsic.txt'),
                np.c_[Rm, Rp, Ωm, Ωp, μ],
                fmt = ['%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e'],
                header = '%19s %21s %21s %21s %21s'
                          %('Rm [m]', 'Rp [m]', 'Ωm [m3]', 'Ωp [m3]', 'μ [Am2]'))  
 
     # Save Initial Conditions (Matrix) - Em, En
-    np.savetxt(path4 + 'Initial.txt',
+    np.savetxt(os.path.join(path4, 'Initial.txt'),
                np.c_[Em, En],
                fmt = ['%22.15e', '%22.15e', '%22.15e','%22.15e', '%22.15e', '%22.15e'],
                header = '%20s %22s %22s %22s %22s %22s'
                          %('Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', 'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'))    
     
     # Save Summary
-    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std/Error)
-    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std/Error)
-    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std/Error)
-    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std/Error) 
+    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std.Dev./Error)
+    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std.Dev./Error)
+    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std.Dev./Error)
+    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std.Dev./Error) 
     summary_file(parameters, path2, 'Microstates')
     
     return None        
@@ -183,7 +183,7 @@ def initial_MvsH(path1, path2, path3, path4):
     - Summary File
     
     Used by:
-    - initialize.initialize  
+    - base.initialize.initialize  
     '''     
         
     # Set Parameters and Initial Conditions
@@ -198,7 +198,7 @@ def initial_MvsH(path1, path2, path3, path4):
     En         = configuration_e(N, θN)         # Easy Axes 
                 
     # Save External Parameters (Scalar) - N, T0, H0, HK, α, dt, X0, X1, X2, f
-    np.savetxt(path3 + 'External.txt',
+    np.savetxt(os.path.join(path3, 'External.txt'),
                np.c_[N, T0, H0, HK, α, dt, X0, X1, X2, f],
                fmt = ['%10d', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%9d', '%9d', '%9d', '%21.15e'],
                header = '%7s %21s %21s %21s %21s %21s %8s %8s %8s %21s'
@@ -206,24 +206,24 @@ def initial_MvsH(path1, path2, path3, path4):
                            'dt [s]', 'X0 [n.u.]', 'X1 [n.u.]', 'X2 [n.u.]', 'f [Hz]'))
 
     # Save Intrinsic Parameters (Vector) - Rn, Rp, Ωm, Ωp, μ
-    np.savetxt(path3 + 'Intrinsic.txt',
+    np.savetxt(os.path.join(path3, 'Intrinsic.txt'),
                np.c_[Rm, Rp, Ωm, Ωp, μ],
                fmt = ['%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e'],
                header = '%19s %21s %21s %21s %21s'
                          %('Rm [m]', 'Rp [m]', 'Ωm [m3]', 'Ωp [m3]', 'μ [Am2]'))  
 
     # Save Initial Conditions (Matrix) - Em, En
-    np.savetxt(path4 + 'Initial.txt',
+    np.savetxt(os.path.join(path4, 'Initial.txt'),
                np.c_[Em, En],
                fmt = ['%22.15e', '%22.15e', '%22.15e','%22.15e', '%22.15e', '%22.15e'],
                header = '%20s %22s %22s %22s %22s %22s'
                          %('Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', 'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'))    
     
     # Save Summary
-    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std/Error)
-    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std/Error)
-    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std/Error)
-    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std/Error) 
+    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std.Dev./Error)
+    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std.Dev./Error)
+    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std.Dev./Error)
+    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std.Dev./Error) 
     summary_file(parameters, path2, 'MvsH')
     
     return None  
@@ -250,7 +250,7 @@ def initial_MvsT(path1, path2, path3, path4, path5):
     - Summary File
     
     Used by:
-    - initialize.initialize  
+    - base.initialize.initialize  
     '''     
     
     # Set Parameters and Initial Conditions
@@ -267,7 +267,7 @@ def initial_MvsT(path1, path2, path3, path4, path5):
     En_FC      = configuration_e(N, θN)         # FC Easy Axes     
     
     # Save External Parameters (Scalar) - N, Ti, Tf, HS, H0, HK, α, dt, X1, X2
-    np.savetxt(path3 + 'External.txt',
+    np.savetxt(os.path.join(path3, 'External.txt'),
                np.c_[N, Ti, Tf, HS, H0, HK, α, dt, X1, X2],
                fmt = ['%10d','%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e', '%9d', '%9d'],
                header = '%7s %21s %21s %21s %21s %21s %21s %21s %8s %8s'
@@ -275,31 +275,31 @@ def initial_MvsT(path1, path2, path3, path4, path5):
                            'HK [A/m]', 'α [n.u.]', 'dt [s]', 'X1 [n.u.]', 'X2 [n.u.]'))
         
     # Save Intrinsic Parameters (Vector) - Rm, Rp, Ωm, Ωp, μ
-    np.savetxt(path3 + 'Intrinsic.txt',
+    np.savetxt(os.path.join(path3, 'Intrinsic.txt'),
                np.c_[Rm, Rp, Ωm, Ωp, μ],
                fmt = ['%21.15e', '%21.15e', '%21.15e', '%21.15e', '%21.15e'],
                header = '%19s %21s %21s %21s %21s'
                          %('Rm [m]', 'Rp [m]', 'Ωm [m3]', 'Ωp [m3]', 'μ [Am2]'))
 
     # Save ZFC Initial Conditions (Matrix) - Em_ZFC, En_ZFC
-    np.savetxt(path4 + 'Initial.txt',
+    np.savetxt(os.path.join(path4, 'Initial.txt'),
                np.c_[Em_ZFC, En_ZFC],
                fmt = ['%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e'],
                header = '%20s %22s %22s %22s %22s %22s'
                          %('Em_x_ZFC[n.u.]', 'Em_y_ZFC[n.u.]', 'Em_z_ZFC[n.u.]', 'En_x_ZFC[n.u.]', 'En_y_ZFC[n.u.]', 'En_z_ZFC[n.u.]'))    
 
     # Save FC Initial Conditions (Matrix) - Em_FC, En_FC
-    np.savetxt(path5 + 'Initial.txt',
+    np.savetxt(os.path.join(path5, 'Initial.txt'),
                np.c_[Em_FC, En_FC],
                fmt = ['%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e'],
                header = '%20s %22s %22s %22s %22s %22s'
                          %('Em_x_FC[n.u.]', 'Em_y_FC[n.u.]', 'Em_z_FC[n.u.]', 'En_x_FC[n.u.]', 'En_y_FC[n.u.]', 'En_z_FC[n.u.]'))   
     
     # Save Summary
-    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std/Error)
-    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std/Error)
-    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std/Error)
-    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std/Error) 
+    parameters['<Rm>'], parameters['σ<Rm>'], parameters['<Rm>e'] = mean_std_error(N, Rm) # Core Radius (Mean/Std.Dev./Error)
+    parameters['<Rp>'], parameters['σ<Rp>'], parameters['<Rp>e'] = mean_std_error(N, Rp) # Particle Radius (Mean/Std.Dev./Error)
+    parameters['<Ωm>'], parameters['σ<Ωm>'], parameters['<Ωm>e'] = mean_std_error(N, Ωm) # Core Volume (Mean/Std.Dev./Error)
+    parameters['<Ωp>'], parameters['σ<Ωp>'], parameters['<Ωp>e'] = mean_std_error(N, Ωp) # Particle Volume (Mean/Std.Dev./Error) 
     summary_file(parameters, path2, 'MvsT')
 
     return None  

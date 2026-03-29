@@ -5,6 +5,7 @@ import matplotlib.gridspec as gridspec
 from libs.base.constants import μ0
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 #------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19,13 +20,13 @@ plt.style.use('bmh')
 #------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot
-def plot(path, simulation, **kwargs):
+def plot(simulation, path, **kwargs):
     '''
     Process the plots based on the specified simulation type.
 
     Input:
-    -                       path (str): Output Path
     -                 simulation (str): Simulation Type
+    -                       path (str): Output Path
     - kwargs ((int, str), tuple[2, 1]): Microstates Plot Arguments Tuple
 
     Output:
@@ -63,15 +64,15 @@ def plot_Microstates(X, path, solver):
     - Microstates Figure
     
     Used by:
-    - plot.plot 
+    - post.plot.plot 
     '''            
 
     # Data Reading
-    t, M       = np.loadtxt(path + 'M(t;H,T).txt', usecols=(0, 3), unpack=True)
-    summary    = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    t, M       = np.loadtxt(os.path.join(path, 'M(t;H,T).txt'), usecols=(0, 3), unpack=True)
+    summary    = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
     MS, T0, H0 = summary[20], summary[27], summary[28]
-    Em1        = np.loadtxt(path + 'One_Particle_Microstates.txt')[:, :3]
-    En1        = np.loadtxt(path + 'One_Particle_Microstates.txt')[:, 3:]
+    Em1        = np.loadtxt(os.path.join(path, 'One_Particle_Microstates.txt'))[:, :3]
+    En1        = np.loadtxt(os.path.join(path, 'One_Particle_Microstates.txt'))[:, 3:]
 
     # Data Processing
     X2         = len(t)                                                           # Integration Steps 
@@ -152,7 +153,7 @@ def plot_Microstates(X, path, solver):
     ax5.set_ylim([-1.1, 1.1]); ax5.grid(alpha=alp1_) 
     
     # Save and Show Figure    
-    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.2, dpi=300)
+    plt.savefig(os.path.join(path, 'Figure.pdf'), bbox_inches='tight', pad_inches=0.2, dpi=300)
     plt.show()  
     
     return None
@@ -172,21 +173,21 @@ def plot_MvsH(path):
     - MvsH Figure
     
     Used by:
-    - plot.plot 
+    - post.plot.plot 
     '''     
 
     # Data Reading
-    t, H, M                     = np.loadtxt(path + 'M(t,H;T).txt', usecols=(0, 3, 6), unpack=True)
-    summary                     = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    t, H, M                     = np.loadtxt(os.path.join(path, 'M(t,H;T).txt'), usecols=(0, 3, 6), unpack=True)
+    summary                     = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
     MS, T0, H0, f, SLP0         = summary[20], summary[27], summary[28], summary[33], summary[39]
     MR_u, MR_d, HC_l, HC_r, SLP = summary[35]/MS, summary[36]/MS, summary[37]/H0, summary[38]/H0, summary[40]/SLP0
     
     # Text
-    t1   = f'$M_{{R}}^{{u}} = {MR_u:0.4f} M_{{S}}$ \n'
-    t2   = f'$M_{{R}}^{{d}} = {MR_d:0.4f} M_{{S}}$ \n'   
-    t3   = f'$H_{{C}}^{{l}} = {HC_l:0.4f} H_{{0}}$ \n'   
-    t4   = f'$H_{{C}}^{{r}} = {HC_r:0.4f} H_{{0}}$ \n'
-    t5   = f'$\\ \\ SLP     = { SLP:0.4f} SLP_{{0}}$ '
+    t1   = f'$M_{{R}}^{{u}} = {MR_u:0.2f} M_{{S}}$ \n'
+    t2   = f'$M_{{R}}^{{d}} = {MR_d:0.2f} M_{{S}}$ \n'   
+    t3   = f'$H_{{C}}^{{l}} = {HC_l:0.2f} H_{{0}}$ \n'   
+    t4   = f'$H_{{C}}^{{r}} = {HC_r:0.2f} H_{{0}}$ \n'
+    t5   = f'$\\ \\ SLP     = { SLP:0.2f} SLP_{{0}}$ '
     text = t1 + t2 + t3 + t4 + t5
         
     # Figure
@@ -228,7 +229,7 @@ def plot_MvsH(path):
     ax1.legend(h1 + h2, l1 + l2, loc='upper center', facecolor='white', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2) 
     
     # Save and Show Figure       
-    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.savefig(os.path.join(path, 'Figure.pdf'), bbox_inches='tight', pad_inches=0.1, dpi=300)
     plt.show()  
     
     return None
@@ -248,14 +249,14 @@ def plot_MvsT(path):
     - MvsT Figure
     
     Used by:
-    - plot.plot 
+    - post.plot.plot 
     '''        
 
     # Data Reading
-    T, M_ZFC, M_FC = np.loadtxt(path + 'M(t,T;H).txt', usecols=(1, 4, 7), unpack=True)
-    ΔM, ΔM_f       = np.loadtxt(path + 'ΔM(t,T;H).txt', usecols=(2, 3), unpack=True)
-    ρTB, ρTB_f     = np.loadtxt(path + 'ρTB(t,T;H).txt', usecols=(2, 3), unpack=True)
-    summary        = np.loadtxt(path + 'Summary.txt', usecols=(1), unpack=True)
+    T, M_ZFC, M_FC = np.loadtxt(os.path.join(path, 'M(t,T;H).txt'), usecols=(1, 4, 7), unpack=True)
+    ΔM, ΔM_f       = np.loadtxt(os.path.join(path, 'ΔM(t,T;H).txt'), usecols=(2, 3), unpack=True)
+    ρTB, ρTB_f     = np.loadtxt(os.path.join(path, 'ρTB(t,T;H).txt'), usecols=(2, 3), unpack=True)
+    summary        = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
     MS, HS, H0, TB = summary[20], summary[29],  summary[30], summary[35]
     
     # Figure
@@ -297,7 +298,7 @@ def plot_MvsT(path):
     ax2.set_xticks(np.arange(0, T[-1] + 50, 50)); ax2.set_xlim([-15, T[-1] + 15]); ax2.set_yticks([]); ax2.grid(alpha=alp1_) 
     
     # Save and Show Figure
-    plt.savefig(path + 'Figure.jpg', bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.savefig(os.path.join(path, 'Figure.pdf'), bbox_inches='tight', pad_inches=0.1, dpi=300)
     plt.show()  
     
     return None

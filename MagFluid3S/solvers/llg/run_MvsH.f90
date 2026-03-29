@@ -13,7 +13,7 @@ program run_MvsH
     ! - Evolution Microstates Files
     !
     ! Used by:
-    ! - run.run
+    ! - base.run.run
 
     use physics, only: H_, SH_
     use integration, only: evolution

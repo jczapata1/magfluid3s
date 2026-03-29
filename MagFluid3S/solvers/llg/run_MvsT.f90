@@ -17,7 +17,7 @@ program run_MvsT
     ! - FC Evolution Microstates Files 
     !
     ! Used by:
-    ! - run.run
+    ! - base.run.run
 
     use physics, only: T_, H_, SH_
     use integration, only: evolution
