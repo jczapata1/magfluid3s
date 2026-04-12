@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Definitions
 lw_   = 1.3
@@ -17,7 +17,7 @@ plt.rcParams['xtick.labelsize'] = fs1_
 plt.rcParams['ytick.labelsize'] = fs1_
 plt.style.use('bmh')
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot
 def plot(simulation, path, **kwargs):
@@ -47,7 +47,7 @@ def plot(simulation, path, **kwargs):
         
     return None  
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot Microstates  
 def plot_Microstates(X, path, solver): 
@@ -158,7 +158,7 @@ def plot_Microstates(X, path, solver):
     
     return None
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot MvsH
 def plot_MvsH(path):
@@ -234,7 +234,7 @@ def plot_MvsH(path):
     
     return None
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot MvsT
 def plot_MvsT(path):
@@ -258,6 +258,10 @@ def plot_MvsT(path):
     ρTB, ρTB_f     = np.loadtxt(os.path.join(path, 'ρTB(t,T;H).txt'), usecols=(2, 3), unpack=True)
     summary        = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
     MS, HS, H0, TB = summary[20], summary[29],  summary[30], summary[35]
+
+    # Text
+    t1   = f'$T_{{B}} = {TB:0.0f}$ K'
+    text = t1
     
     # Figure
     fig = plt.figure(figsize=(6, 3))
@@ -275,6 +279,8 @@ def plot_MvsT(path):
     ax0.set_xticks(np.arange(0, T[-1] + 50, 50)); ax0.set_xlim([-15, T[-1] + 15]); ax0.set_ylim([-0.05, 1.05])
     ax0.legend(facecolor='white', loc='upper right', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax0.grid(alpha=alp1_) 
     ax0.set_title('$\\mu_{0}H_{S}=$' + si_format(μ0*HS, unit='T') + ', $\\mu_{0}H_{0}=$' + si_format(μ0*H0, unit='T'), fontsize=fs1_, pad=10)
+    ax0.text(0.14, 0.91, text, transform=ax0.transAxes, ha='center', va='center', fontsize=fs0_, 
+               bbox=dict(boxstyle='round,pad=0.4', facecolor='white', edgecolor='0.8', linewidth=0.5))
 
     # 2nd Axis: ΔM vs T
     gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[1], hspace=0.05)
@@ -286,7 +292,6 @@ def plot_MvsT(path):
     ax1.set_xticks(np.arange(0, T[-1] + 50, 50)); ax1.set_xlim([-15, T[-1] + 15]); ax1.set_yticks([])
     ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
     ax1.legend(facecolor='white', loc='upper left', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax1.grid(alpha=alp1_) 
-    ax1.set_title('$T_{B}=$' + si_format(round(TB, 0), unit='K'), fontsize=fs1_, pad=10)
 
     # 3th Axis: ρTB vs T
     ax2 = fig.add_subplot(gs1[1])

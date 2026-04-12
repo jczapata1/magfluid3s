@@ -1,5 +1,6 @@
 # Plot
 from libs.post.utils import si_scale, si_format
+import matplotlib.gridspec as gridspec
 from libs.base.constants import μ0
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,7 +50,23 @@ def plot(simulation, path, n):
 
 # Plot Microstates
 def plot_Microstates(path, n):
-    pass
+    '''
+    Process the plots based on Microstates experiments.
+
+    Input:
+    - path (str): Output Path
+    -    n (int): Number of Experiments
+
+    Output:
+    - None
+
+    Used by:
+    - auto.plot.plot
+    '''   
+
+    # Empty
+
+    return None
 
 #------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,6 +82,9 @@ def plot_MvsH(path, n):
     Output:
     - None
     - MvsH Figure
+
+    Used by:
+    - auto.plot.plot
     '''       
     
     # Data Reading
@@ -126,8 +146,85 @@ def plot_MvsH(path, n):
     plt.savefig(os.path.join(path, 'Figure.pdf'), bbox_inches='tight', pad_inches=0.1, dpi=300)
     plt.show()  
 
+    return None  
+
 #------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Plot MvsT
 def plot_MvsT(path, n):
-    pass
+    '''
+    Process the plots based on MvsT experiments.
+
+    Input:
+    - path (str): Output Path
+    -    n (int): Number of Experiments
+
+    Output:
+    - None
+    - MvsT Figure
+
+    Used by:
+    - auto.plot.plot
+    ''' 
+
+    # Data Reading
+    T, M_ZFC_m, M_ZFC_e, M_FC_m, M_FC_e = np.loadtxt(os.path.join(path, 'M(t,T;H).txt'), usecols=(1, 2, 4, 5, 7), unpack=True) 
+    ΔM_m, ΔM_f_m, ΔM_f_e                = np.loadtxt(os.path.join(path, 'ΔM(t,T;H).txt'), usecols=(2, 5, 7), unpack=True)     
+    ρTB_m, ρTB_f_m, ρTB_f_e             = np.loadtxt(os.path.join(path, 'ρTB(t,T;H).txt'), usecols=(2, 5, 7), unpack=True)     
+    C1                                  = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)  
+    C2                                  = np.loadtxt(os.path.join(path, 'ThermodynamicProperties.txt'), usecols=(1, 3)) 
+    MS, HS, H0 = C1[8], C1[17], C1[18]                                        
+    TB_m, TB_e = C2[5, 0], C2[5, 1]
+
+    # Text
+    t1   = f'$\\langle T_{{B}} \\rangle = ({TB_m:0.0f} \\pm {TB_e:0.0f})$ K'
+    text = t1              
+
+    # Figure
+    fig = plt.figure(figsize=(6, 3))
+    gs  = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[1, 1], wspace=0.15)
+
+    # 1st Axis: M vs T   
+    ax0 = fig.add_subplot(gs[0])
+    ax0.plot(T, M_ZFC_m/MS, color='green', linewidth=lw_, label='$ZFC$')    
+    ax0.fill_between(T, (M_ZFC_m - M_ZFC_e)/MS, (M_ZFC_m + M_ZFC_e)/MS, color='green', alpha=alp2_)
+    ax0.plot(T, M_FC_m/MS, color='black', linewidth=lw_, label='$FC$') 
+    ax0.fill_between(T, (M_FC_m - M_FC_e)/MS, (M_FC_m + M_FC_e)/MS, color='black', alpha=alp2_)
+    ax0.axvline(TB_m, color='brown', ls='--', alpha=alp4_, label='$\\langle T_{B} \\rangle$')  
+    ax0.set_xlabel('$T$ [K]', fontsize=fs3_); ax0.set_ylabel('$M/M_{S}$', fontsize=fs3_)
+    ax0.tick_params(axis='x', bottom=True, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax0.tick_params(axis='y', left=True, right=True, labelleft=True, labelright=False, direction='out', colors='gray', labelcolor='black')
+    ax0.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], ['$0$', '', '', '', '', '$\\frac{1}{2}$', '', '', '', '', '$1$']) 
+    ax0.set_xticks(np.arange(0, T[-1] + 50, 50)); ax0.set_xlim([-15, T[-1] + 15]); ax0.set_ylim([-0.05, 1.05])
+    ax0.legend(facecolor='white', loc='upper right', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax0.grid(alpha=alp1_) 
+    ax0.set_title('$\\mu_{0}H_{S}=$' + si_format(μ0*HS, unit='T') + ', $\\mu_{0}H_{0}=$' + si_format(μ0*H0, unit='T'), fontsize=fs1_, pad=10)
+    ax0.text(0.21, 0.91, text, transform=ax0.transAxes, ha='center', va='center', fontsize=fs0_, 
+               bbox=dict(boxstyle='round,pad=0.4', facecolor='white', edgecolor='0.8', linewidth=0.5))
+    
+    # 2nd Axis: ΔM vs T
+    gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[1], hspace=0.05)
+    ax1 = fig.add_subplot(gs1[0])
+    ax1.scatter(T, ΔM_m, color='black', s=5, alpha=alp1_, label='Data')
+    ax1.plot(T, ΔM_f_m, color='black', linewidth=lw_, label='Fit')   
+    ax1.fill_between(T, ΔM_f_m - ΔM_f_e, ΔM_f_m + ΔM_f_e, color='black', alpha=alp2_)
+    ax1.axvline(TB_m, color='brown', ls='--', alpha=alp4_)  
+    ax1.set_ylabel('$M_{ZFC}-M_{FC}$  [a.u.]', fontsize=fs3_)
+    ax1.set_xticks(np.arange(0, T[-1] + 50, 50)); ax1.set_xlim([-15, T[-1] + 15]); ax1.set_yticks([])
+    ax1.tick_params(axis='x', bottom=False, top=True, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax1.legend(facecolor='white', loc='upper left', fontsize=fs1_, framealpha=alp3_, handletextpad=0.3).set_zorder(2); ax1.grid(alpha=alp1_) 
+
+    # 3th Axis: ρTB vs T
+    ax2 = fig.add_subplot(gs1[1])
+    ax2.scatter(T, ρTB_m, color='black', s=5, alpha=alp1_)
+    ax2.plot(T, ρTB_f_m, color='black', linewidth=lw_)      
+    ax2.fill_between(T, ρTB_f_m - ρTB_f_e, ρTB_f_m + ρTB_f_e, color='black', alpha=alp2_)
+    ax2.axvline(TB_m, color='brown', ls='--', alpha=alp4_, label='$T_{B}$')  
+    ax2.set_xlabel('$T$ [K]', fontsize=fs3_); ax2.set_ylabel('$\\rho_{T_{B}}$ [a.u.]', fontsize=fs3_)
+    ax2.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False, direction='out', colors='gray', labelcolor='black')
+    ax2.set_xticks(np.arange(0, T[-1] + 50, 50)); ax2.set_xlim([-15, T[-1] + 15]); ax2.set_yticks([]); ax2.grid(alpha=alp1_) 
+
+    # Save and Show Figure     
+    plt.savefig(os.path.join(path, 'Figure.pdf'), bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.show()
+
+    return None  
