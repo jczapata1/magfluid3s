@@ -19,7 +19,7 @@ def make_input_file(path1, path2, properties):
     - Input File
 
     Used by:
-    - magfluid3s_auto.MagFluid3SAuto.run
+    - auto.run.run
     '''
     
     # Create Input File      
@@ -50,7 +50,9 @@ def folder_zip(path):
     - Folder ZIP 
 
     Used by:
-    - 
+    - auto.data.data_Microstates
+    - auto.data.data_MvsH
+    - auto.data.data_MvsT
     '''   
 
     shutil.make_archive(path, 'zip', path) # Folder to ZIP

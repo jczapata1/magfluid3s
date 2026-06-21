@@ -3,7 +3,7 @@ import urllib.request
 
 #-------------------------------------------------------------------------------------------------------------------------------
 
-tag  = 'v1.5.0'
+tag  = 'v1.6.0'
 data = {'./Auto_Microstates/Data.zip': f'https://github.com/jczapata1/magfluid3s/releases/download/{tag}/Auto_Microstates.zip',
         './Auto_MvsH/Data.zip': f'https://github.com/jczapata1/magfluid3s/releases/download/{tag}/Auto_MvsH.zip',
         './Auto_MvsT/Data.zip': f'https://github.com/jczapata1/magfluid3s/releases/download/{tag}/Auto_MvsT.zip'}

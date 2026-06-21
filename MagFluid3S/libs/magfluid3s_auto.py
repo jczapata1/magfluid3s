@@ -47,4 +47,4 @@ class MagFluid3SAuto:
     @benchmark
     def plot_summary(self):
         '''Read MagFluid3S/libs/auto/plot.py/plot documentation.'''
-        return plot(self.simulation, self.output_folder, self.n)   
+        return plot(self.simulation, self.output_folder)   

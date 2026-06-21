@@ -202,7 +202,7 @@ def data_MvsT(path, n):
                 
     # Read Parameters  
     parameters = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    N = int(parameters[14]); X1 = int(parameters[21])
+    N = int(parameters[14]); X1 = int(parameters[20])
     
     # Create Arrays
     Rm, σRm = np.zeros(n), np.zeros(n) # Core Radius (Mean/Std.Dev.)

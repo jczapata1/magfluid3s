@@ -1,8 +1,16 @@
-.dockerignore
-Dockerfile
-venv/
+# Python
+.venv/
 __pycache__/
+*.pyc
+
+# Jupyter
 .ipynb_checkpoints/
 MagFluid3S/test.ipynb
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Build Artifacts
 *_linux
 *.zip

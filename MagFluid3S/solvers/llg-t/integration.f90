@@ -27,7 +27,7 @@ module integration
         ! - None     
         !
         ! Used by:
-        ! - llg.integration.evolution
+        ! - llg-t.integration.evolution
 
         use constants, only: MU0
         use math, only: rv_normal, dot_prod, cross_prod 

@@ -21,8 +21,8 @@ def benchmark(function):
     - magfluid3s.MagFluid3S.make_summary
     - magfluid3s.MagFluid3S.plot_summary
     - magfluid3s_auto.MagFluid3SAuto.run
-    - magfluid3s_auto.MagFluid3S.make_summary
-    - magfluid3s_auto.MagFluid3S.plot_summary
+    - magfluid3s_auto.MagFluid3SAuto.make_summary
+    - magfluid3s_auto.MagFluid3SAuto.plot_summary
     '''
 
     # Wrapper

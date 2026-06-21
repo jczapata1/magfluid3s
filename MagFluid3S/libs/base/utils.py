@@ -26,6 +26,7 @@ def mean_std_error(X, data, stds=None):
     - base.initialize.initial_MvsH
     - base.initialize.initial_MvsT
     - auto.data.data_MvsH
+    - auto.data.data_MvsT
     '''  
 
     if (stds is None):
@@ -143,8 +144,8 @@ def make_folder(path):
 
     Used by:
     - base.initialize.initialize
-    - magfluid3s_auto.MagFluid3SAuto.run
     - auto.data.data_Microstates
+    - auto.run.run
     '''   
 
     # Create

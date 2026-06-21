@@ -22,6 +22,7 @@ def si_scale(value, unit=''):
     Used by:
     - post.plot.plot_Microstates 
     - post.plot.plot_MvsH 
+    - auto.plot.plot_MvsH
     '''    
 
     # SI Prefixes
@@ -57,6 +58,8 @@ def si_format(value, unit=''):
     - post.plot.plot_Microstates 
     - post.plot.plot_MvsH 
     - post.plot.plot_MvsT
+    - auto.plot.plot_MvsH
+    - auto.plot.plot_MvsT
     '''    
     
     scale, label = si_scale(value, unit)        # Identify Scale and Prefix      
@@ -176,9 +179,9 @@ def MvsH_area(X0, X1, H, M):
     l3 = X0 * X1          # Final Point
 
     # MvsH Loop Area
-    A_u = -np.trapz(M[l1:l2], H[l1:l2]) # Upper Branch
-    A_l = np.trapz(M[l2:l3], H[l2:l3])  # Lower Branch
-    A   = A_u - A_l                     # Area
+    A_u = -np.trapezoid(M[l1:l2], H[l1:l2]) # Upper Branch
+    A_l = np.trapezoid(M[l2:l3], H[l2:l3])  # Lower Branch
+    A   = A_u - A_l                         # Area
         
     return A
 
