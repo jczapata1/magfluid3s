@@ -11,6 +11,13 @@ MagFluid3S/test.ipynb
 .dockerignore
 Dockerfile
 
+# Claude
+.claude/
+CLAUDE.md
+
+# Internal Info
+MagFluid3S/dev/
+
 # Build Artifacts
 *_linux
 *.zip

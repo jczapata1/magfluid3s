@@ -2,14 +2,15 @@
 from libs.post.utils import vol_magnetization, MR_HC, MvsH_area, ΔM_ρTB
 from libs.base.constants import μ0
 import numpy as np
+import h5py
 import os
       
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------
 
 # Data
 def data(simulation, path):
     '''
-    Process the data files based on the specified simulation type.
+    Process the simulation data file.
 
     Input:
     - simulation (str): Simulation Type
@@ -19,21 +20,27 @@ def data(simulation, path):
     - None
 
     Used by:
-    - magfluid3s.MagFluid3S.make_summary 
+    - libs.magfluid3s.MagFluid3S.make_summary 
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
     if (simulation == 'Microstates'):
         data_Microstates(path)
+        
     elif (simulation == 'MvsH'):
         data_MvsH(path)
+        
     elif (simulation == 'MvsT'):
         data_MvsT(path)
+        
     else:
         raise ValueError("Invalid Simulation Type!. Use 'Microstates', 'MvsH', or 'MvsT'.")
         
     return None  
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------
 
 # Data Microstates
 def data_Microstates(path):
@@ -45,57 +52,54 @@ def data_Microstates(path):
 
     Output:
     - None
-    - M(t;H,T) File
-    - One Particle Microstates File
-    - Summary File
+    - Simulation.h5
 
     Used by:
-    - post.data.data
+    - libs.post.data.data
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
-    # Read Parameters
-    parameters = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    X2 = int(parameters[30])
-
     # Data Reading
-    files = sorted([file for file in os.listdir(os.path.join(path, 'Microstates')) if file not in ['Initial.txt', '.ipynb_checkpoints']])
-    Ωm, μ = np.loadtxt(os.path.join(path, 'Parameters', 'Intrinsic.txt'), usecols=(2, 4), unpack=True)
-    t     = np.loadtxt(os.path.join(path, 'Signals.txt'), usecols=(0)) # Time
-    M     = np.zeros((X2, 3))                                          # Volumentric Magnetization
-    Em1   = np.zeros((X2, 3))                                          # One-Particle Magnetic Moment (Vector)
-    En1   = np.zeros((X2, 3))                                          # One-Particle Easy Axis
-    Vm    = np.sum(Ωm)                                                 # Total Core Volume
-    j     = np.random.randint(0, len(Ωm))                              # Random Particle
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    # Data Processing
-    for k, file in enumerate(files):
-        Em      = np.loadtxt(os.path.join(path, 'Microstates', f'{file}'), usecols=(0, 1, 2))
-        En      = np.loadtxt(os.path.join(path, 'Microstates', f'{file}'), usecols=(3, 4, 5))
-        M[k, :] = vol_magnetization(Vm, μ, Em)    
-        Em1[k]  = Em[j, :]
-        En1[k]  = En[j, :]
+        # Parameters, Summary, and Signals
+        X2  = int(file['/Summary'].attrs['X2'])
+        Ωm  = file['/Parameters/Intrinsic/Ωm'][:]
+        μ   = file['/Parameters/Intrinsic/μ'][:]
+        M   = np.zeros((X2, 3))
+        Em1 = np.zeros((X2, 3))
+        En1 = np.zeros((X2, 3))
+        Vm  = np.sum(Ωm)
+        j   = np.random.randint(0, len(Ωm))
+
+        # Data Processing
+        keys = sorted(key for key in file['/Microstates/Em'].keys() if key not in ('Initial', ))
+        for (k, key) in enumerate(keys):
+            Em        = file[f'/Microstates/Em/{key}'][:]
+            En        = file[f'/Microstates/En/{key}'][:]
+            M[k, :]   = vol_magnetization(Vm, μ, Em)
+            Em1[k, :] = Em[j, :]
+            En1[k, :] = En[j, :]
 
     # Data Saving
-    np.savetxt(os.path.join(path, 'M(t;H,T).txt'),
-               np.c_[t, M],
-               fmt = ['%21.15e', '%22.15e', '%22.15e', '%22.15e'],
-               header = '%19s %22s %22s %22s'
-                         %('t [s]', 'M_x [A/m]', 'M_y [A/m]', 'M_z [A/m]'))     
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    np.savetxt(os.path.join(path, 'One_Particle_Microstates.txt'),
-               np.c_[Em1, En1],
-               fmt = ['%22.15e', '%22.15e', '%22.15e','%22.15e', '%22.15e', '%22.15e'],
-               header = '%20s %22s %22s %22s %22s %22s'
-                         %('Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', 'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'))    
+        # Microstates
+        file.create_dataset('/Microstates/One_Particle/Em1', data=Em1)
+        file.create_dataset('/Microstates/One_Particle/En1', data=En1)
 
-    # Add Physical Observables to Summary File    
-    with open(os.path.join(path, 'Summary.txt'), 'a') as file: 
-        file.write(f'\n') 
-        file.write(f'        Vm: {Vm:21.15e} m3') 
-    
+        # Thermodynamic Properties
+        thermo = file['Thermodynamic_Properties']
+        thermo.attrs['Vm'] = Vm
+
+        # Signals
+        file.create_dataset('/Signals/Volumetric_Magnetization', data=M)
+
     return None
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------
 
 # Data MvsH
 def data_MvsH(path):
@@ -107,57 +111,61 @@ def data_MvsH(path):
 
     Output:
     - None
-    - M(t,H;T) File
-    - Summary File
+    - Simulation.h5
 
     Used by:
-    - post.data.data
+    - libs.post.data.data
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
-    # Read Parameters
-    parameters = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    ρM = parameters[19]; MS = parameters[20]; H0 = parameters[28]; X0 = int(parameters[30]); X1 = int(parameters[31]); f = parameters[33]
-
     # Data Reading
-    files = sorted([file for file in os.listdir(os.path.join(path, 'Microstates')) if file not in ['Initial.txt', 'Saturation.txt', '.ipynb_checkpoints']])
-    Ωm, μ = np.loadtxt(os.path.join(path, 'Parameters', 'Intrinsic.txt'), usecols=(2, 4), unpack=True)
-    t_H   = np.loadtxt(os.path.join(path, 'Signals.txt'))
-    t     = t_H[:, 0]            # Time
-    H     = t_H[:, 1:4]          # Magnetic Field
-    M     = np.zeros((X0*X1, 3)) # Volumetric Magnetization
-    Vm    = np.sum(Ωm)           # Total Core Volume
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    # Data Processing
-    for k, file in enumerate(files):
-        Em      = np.loadtxt(os.path.join(path, 'Microstates', f'{file}'), usecols=(0, 1, 2))
-        M[k, :] = vol_magnetization(Vm, μ, Em)
-   
-    # Physical Observables      
-    MR_u, MR_d, HC_l, HC_r = MR_HC(X0, X1, H[:, 2], M[:, 2])                        # Remanent Magnetization (Up-Down) and Coercive Field (Left-Right)  
-    SLP0                   = 1.0e-9 * (4.0*μ0*f*MS*H0)/ρM                           # Specific Loss Power Constant
-    SLP                    = MvsH_area(X0, X1, H[:, 2], M[:, 2])/(4.0*MS*H0) * SLP0 # Specific Loss Power
+        # Parameters, Summary, and Signals
+        ρM = file['/Summary'].attrs['ρM']
+        MS = file['/Summary'].attrs['MS']
+        H0 = file['/Summary'].attrs['H0']
+        X0 = int(file['/Summary'].attrs['X0'])
+        X1 = int(file['/Summary'].attrs['X1'])
+        f  = file['/Summary'].attrs['f']
+        Ωm = file['/Parameters/Intrinsic/Ωm'][:]
+        μ  = file['/Parameters/Intrinsic/μ'][:]
+        H  = file['/Signals/Magnetic_Field'][:]
+        M  = np.zeros((X0*X1, 3))                
+        Vm = np.sum(Ωm)                          
+        
+        # Data Processing
+        keys = sorted(key for key in file['/Microstates/Em'].keys() if key not in ('Initial', 'Saturation'))
+        for (k, key) in enumerate(keys):
+            Em      = file[f'/Microstates/Em/{key}'][:]
+            M[k, :] = vol_magnetization(Vm, μ, Em)
+
+    # Physical Observables
+    MR_u, MR_d, HC_l, HC_r = MR_HC(X0, X1, H[:, 2], M[:, 2])
+    SLP0                   = 1.0e-9 * (4.0*μ0*f*MS*H0) / ρM
+    SLP                    = MvsH_area(X0, X1, H[:, 2], M[:, 2])/(4.0*MS*H0) * SLP0
 
     # Data Saving
-    np.savetxt(os.path.join(path, 'M(t,H;T).txt'),
-               np.c_[t, H, M],
-               fmt = ['%21.15e', '%22.15e', '%22.15e','%22.15e', '%22.15e', '%22.15e', '%22.15e'],
-               header = '%19s %22s %22s %22s %22s %22s %22s'
-                         %('t [s]', 'H_x [A/m]', 'H_y [A/m]', 'H_z [A/m]', 'M_x [A/m]', 'M_y [A/m]', 'M_z [A/m]')) 
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    # Add Physical Observables to Summary File    
-    with open(os.path.join(path, 'Summary.txt'), 'a') as file: 
-        file.write(f'\n') 
-        file.write(f'        Vm: {       Vm:21.15e} m3   \n') 
-        file.write(f'      MR_u: {abs(MR_u):21.15e} A/m  \n')
-        file.write(f'      MR_d: {abs(MR_d):21.15e} A/m  \n')    
-        file.write(f'      HC_l: {abs(HC_l):21.15e} A/m  \n')
-        file.write(f'      HC_r: {abs(HC_r):21.15e} A/m  \n')    
-        file.write(f'      SLP0: {     SLP0:21.15e} W/mg \n')
-        file.write(f'       SLP: {      SLP:21.15e} W/mg   ')
-  
+        # Thermodynamic Properties
+        thermo = file['Thermodynamic_Properties']
+        thermo.attrs['Vm']   = Vm
+        thermo.attrs['MR_u'] = abs(MR_u)
+        thermo.attrs['MR_d'] = abs(MR_d)
+        thermo.attrs['HC_l'] = abs(HC_l)
+        thermo.attrs['HC_r'] = abs(HC_r)
+        thermo.attrs['SLP0'] = SLP0
+        thermo.attrs['SLP']  = SLP
+
+        # Signals
+        file.create_dataset('/Signals/Volumetric_Magnetization', data=M)
+
     return None
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------
 
 # Data MvsT
 def data_MvsT(path):
@@ -169,66 +177,55 @@ def data_MvsT(path):
 
     Output:
     - None
-    - M(t,T;H) File
-    - ΔM(t,T;H) File
-    - ρTB(t,T;H) File
-    - Summary File
+    - Simulation.h5
 
     Used by:
-    - post.data.data
+    - libs.post.data.data
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
-    # Read Parameters
-    parameters = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    X1 = int(parameters[32])
-
     # Data Reading
-    files_ZFC = sorted([file for file in os.listdir(os.path.join(path, 'ZFC Microstates')) if file not in ['Initial.txt', 'Cooling.txt', '.ipynb_checkpoints']])
-    files_FC  = sorted([file for file in os.listdir(os.path.join(path, 'FC Microstates')) if file not in ['Initial.txt', 'Cooling.txt', '.ipynb_checkpoints']])  
-    Ωm, μ     = np.loadtxt(os.path.join(path, 'Parameters', 'Intrinsic.txt'), usecols=(2, 4), unpack=True)
-    t_T       = np.loadtxt(os.path.join(path, 'Signals.txt'), usecols=(0, 4))
-    t         = t_T[:, 0]         # Time
-    T         = t_T[:, 1]         # Temperature
-    M_ZFC     = np.zeros((X1, 3)) # ZFC Volumetric Magnetization
-    M_FC      = np.zeros((X1, 3)) # FC Volumetric Magnetization    
-    Vm        = np.sum(Ωm)        # Total Core Volume
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    # Data Processing
-    for k, (file_ZFC, file_FC) in enumerate(zip(files_ZFC, files_FC)):
-        Em_ZFC      = np.loadtxt(os.path.join(path, 'ZFC Microstates', f'{file_ZFC}'), usecols=(0, 1, 2))
-        Em_FC       = np.loadtxt(os.path.join(path, 'FC Microstates', f'{file_FC}'), usecols=(0, 1, 2))
-        M_ZFC[k, :] = vol_magnetization(Vm, μ, Em_ZFC)
-        M_FC[k, :]  = vol_magnetization(Vm, μ, Em_FC)  
+        # Parameters, Summary, and Signals
+        X1    = int(file['/Summary'].attrs['X1'])
+        Ωm    = file['/Parameters/Intrinsic/Ωm'][:]
+        μ     = file['/Parameters/Intrinsic/μ'][:]
+        T     = file['/Signals/Temperature'][:]
+        M_ZFC = np.zeros((X1, 3))                
+        M_FC  = np.zeros((X1, 3))                
+        Vm    = np.sum(Ωm)                       
 
-    # Physical Observables  
-    ΔM          = M_ZFC[:, 2] - M_FC[:, 2] # ZFC-FC Magnetization Difference
-    ρTB         = np.gradient(ΔM, T)       # Blocking Temperature Distribution
-    ΔM_f, ρTB_f = ΔM_ρTB(T, ΔM)            # ZFC-FC Magnetization Difference (Fitted) and Blocking Temperature Distribution (Fitted)
-    TB          = T[np.argmax(ρTB_f)]      # Blocking Temperature
+        # Data Processing
+        keys = sorted(key for key in file['/Microstates/ZFC/Em'].keys() if key not in ('Initial', 'Cooling'))
+        for (k, key) in enumerate(keys):
+            Em_ZFC      = file[f'/Microstates/ZFC/Em/{key}'][:]
+            Em_FC       = file[f'/Microstates/FC/Em/{key}'][:]
+            M_ZFC[k, :] = vol_magnetization(Vm, μ, Em_ZFC)
+            M_FC[k, :]  = vol_magnetization(Vm, μ, Em_FC)
+
+    # Physical Observables
+    ΔM          = M_ZFC[:, 2] - M_FC[:, 2] 
+    ρTB         = np.gradient(ΔM, T)      
+    ΔM_f, ρTB_f = ΔM_ρTB(T, ΔM)            
+    TB          = T[np.argmax(ρTB_f)]      
 
     # Data Saving
-    np.savetxt(os.path.join(path, 'M(t,T;H).txt'),
-               np.c_[t, T, M_ZFC, M_FC],
-               fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e', '%22.15e'],
-               header = '%19s %21s %22s %22s %22s %22s %22s %22s'
-                         %('t [s]', 'T [K]', 'M_ZFC_x [A/m]', 'M_ZFC_y [A/m]', 'M_ZFC_z [A/m]', 'M_FC_x [A/m]', 'M_FC_y [A/m]', 'M_FC_z [A/m]')) 
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'a') as file:
 
-    np.savetxt(os.path.join(path, 'ΔM(t,T;H).txt'),
-               np.c_[t, T, ΔM, ΔM_f],
-               fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e'],
-               header = '%19s %21s %22s %22s'
-                         %('t [s]', 'T [K]', 'ΔM [A/m]', 'ΔM_fitted [A/m]'))     
-    
-    np.savetxt(os.path.join(path, 'ρTB(t,T;H).txt'),
-               np.c_[t, T, ρTB, ρTB_f],
-               fmt = ['%21.15e', '%21.15e', '%22.15e', '%22.15e'],
-               header = '%19s %21s %22s %22s'
-                         %('t [s]', 'T [K]', 'ρTB [A/mK]', 'ρTB_fitted [A/mK]'))       
+        # Thermodynamic Properties
+        thermo = file['Thermodynamic_Properties']
+        thermo.attrs['Vm'] = Vm
+        thermo.attrs['TB'] = TB
 
-    # Add Physical Observables to Summary File    
-    with open(os.path.join(path, 'Summary.txt'), 'a') as file: 
-        file.write(f'\n') 
-        file.write(f'        Vm: {Vm:21.15e} m3 \n') 
-        file.write(f'        TB: {TB:21.15e} K    ') 
-    
+        # Signals
+        file.create_dataset('/Signals/Volumetric_Magnetization_ZFC', data=M_ZFC)
+        file.create_dataset('/Signals/Volumetric_Magnetization_FC', data=M_FC)
+        file.create_dataset('/Signals/ΔM', data=ΔM)
+        file.create_dataset('/Signals/ΔM_Fitted', data=ΔM_f)
+        file.create_dataset('/Signals/ρTB', data=ρTB)
+        file.create_dataset('/Signals/ρTB_Fitted', data=ρTB_f)
+
     return None

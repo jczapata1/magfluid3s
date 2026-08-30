@@ -16,16 +16,20 @@ module math
             ! - r_normal (real*8): Random Number  
             !
             ! Used by:
-            ! - math.rv_normal
+            ! - solvers.libs.math.rv_normal
+            !
+            ! Last Updated: 
+            ! - 16/08/2026
 
-            use constants, only : PI 
+            use constants, only : PI
             real*8, intent(in) :: sigma
             real*8             :: r_normal
-            real*4             :: r1, r2, u, v
-            
-            call random_number(r1); u = 0.9999*r1 + 0.0001
-            call random_number(r2); v = 0.9999*r2 + 0.0001
-            r_normal = sqrt(-2.0*log(u)) * cos(2.0*PI*v) * sigma
+            real*8             :: u, v
+
+            call random_number(u)
+            call random_number(v)
+            u        = max(u, tiny(1.0d0))
+            r_normal = sigma * sqrt(-2.0d0*log(u)) * cos(2.0d0*PI*v)
 
         end function r_normal
         
@@ -37,14 +41,17 @@ module math
             ! Generate random 3D-vector with normal distribution.
             !
             ! Input:          
-            ! -                 sigma (real*8): Standard Deviation
+            ! -                    sigma (real*8): Standard Deviation
             !
             ! Output:  
-            ! - r_vector (real*8, array[3, 1]): Random Vector    
+            ! - r_vector ((real*8, ), array[3, ]): Random Vector    
             !
             ! Used by:
-            ! - llg.integration.stratonovich_heun
-            ! - llg-t.integration.stratonovich_heun
+            ! - solvers.llg.integration.stratonovich_heun
+            ! - solvers.llg-t.integration.stratonovich_heun
+            !
+            ! Last Updated: 
+            ! - 16/08/2026
 
             implicit none
             real*8, intent(in) :: sigma
@@ -57,20 +64,23 @@ module math
 !---------------------------------------------------------------------------
 
         !! Dot Product
-        function dot_prod(U, V)
+        pure function dot_prod(U, V)
 
             ! Calculate the dot product of two 3D-vectors.
             !
             ! Input:
-            !  -     U (real*8, array[3, 1]): Vector 1
-            !  -     V (real*8, array[3, 1]): Vector 2
+            !  -     U ((real*8, ), array[3, ]): Vector 1
+            !  -     V ((real*8, ), array[3, ]): Vector 2
             !
             ! Output:
-            ! -            dot_prod (real*8): Dot Product     
+            ! -              dot_prod (real*8): Dot Product     
             !
             ! Used by:
-            ! - llg.integration.stratonovich_heun
-            ! - llg-t.integration.stratonovich_heun
+            ! - solvers.llg.integration.stratonovich_heun
+            ! - solvers.llg-t.integration.stratonovich_heun
+            !
+            ! Last Updated: 
+            ! - 16/08/2026
 
             implicit none
             real*8, intent(in) :: U(0:2), V(0:2)
@@ -83,20 +93,23 @@ module math
 !---------------------------------------------------------------------------        
         
         !! Cross Product
-        function cross_prod(U, V)
+        pure function cross_prod(U, V)
 
             ! Calculate the cross product of two 3D-vectors.
             !
             ! Input:
-            !  -         U (real*8, array[3, 1]): Vector 1
-            !  -         V (real*8, array[3, 1]): Vector 2
+            !  -         U ((real*8, ), array[3, ]): Vector 1
+            !  -         V ((real*8, ), array[3, ]): Vector 2
             !
             ! Output:
-            ! - cross_prod (real*8, array[3, 1]): Cross Product    
+            ! - cross_prod ((real*8, ), array[3, ]): Cross Product    
             !
             ! Used by:
-            ! - llg.integration.stratonovich_heun
-            ! - llg-t.integration.stratonovich_heun
+            ! - solvers.llg.integration.stratonovich_heun
+            ! - solvers.llg-t.integration.stratonovich_heun
+            !
+            ! Last Updated: 
+            ! - 16/08/2026
 
             implicit none
             real*8, intent(in) :: U(0:2), V(0:2)

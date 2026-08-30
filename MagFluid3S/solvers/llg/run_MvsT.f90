@@ -3,117 +3,157 @@ program run_MvsT
     ! Perform the MvsT simulation.
     !
     ! Input:
-    ! - External Parameters File  
-    ! - Internal Parameters File          
-    ! - ZFC Initial Microstates File
-    ! - FC Initial Microstates File
-    
+    ! - Simulation.h5
     !
-    ! Output:  
-    ! - Signals File
-    ! - ZFC Cooling Microstates File    
-    ! - FC Cooling Microstates File    
-    ! - ZFC Evolution Microstates Files    
-    ! - FC Evolution Microstates Files 
+    ! Output:
+    ! - Simulation.h5
     !
     ! Used by:
-    ! - base.run.run
+    ! - libs.base.run.run
+    !
+    ! Last Updated: 
+    ! - 16/08/2026
 
-    use physics, only: T_, H_, SH_
+    use hdf5_io
+    use physics,     only: T_, H_, SH_
     use integration, only: evolution
     integer             :: N, X1, X2
-    real*8              :: Ti, Tf, HS, H0, HK, alp, dt
-    real*8, allocatable :: Rm, Rp, Om, Op, Mu(:), Em_ZFC(:, :), Em_FC(:, :), En_ZFC(:, :), En_FC(:, :), SH(:)
+    real*8              :: Ti, Tf, HS, H0, HK, alp, dt, params(10)
+    real*8, allocatable :: Rm(:), Rp(:), Om(:), Op(:), Mu(:)
+    real*8, allocatable :: Em_ZFC(:, :), Em_FC(:, :), En_ZFC(:, :), En_FC(:, :), SH(:)
+    real*8, allocatable :: signal_t(:), signal_H(:, :), signal_T0(:)
     real*8              :: t, tt, T0, HS_ZFC(0:2), HS_FC(0:2), H(0:2)
-    character(len=100)  :: header, filename    
-    integer             :: i, k1, k2
-    
-!---------------------------------------------------------------------------------------------------------------------------------------------------
+    integer             :: k, k1, k2
+    integer(HID_T)      :: file_id
+    character(len=100)  :: file_name
 
-    ! Read and Write Files
-    open(100, file='./solvers/llg/temporal/Parameters/External.txt', action='read')
-    open(101, file='./solvers/llg/temporal/Parameters/Intrinsic.txt', action='read')
-    open(102, file='./solvers/llg/temporal/ZFC Microstates/Initial.txt', action='read')    
-    open(103, file='./solvers/llg/temporal/FC Microstates/Initial.txt', action='read')        
-    open(104, file='./solvers/llg/temporal/ZFC Microstates/Cooling.txt', action='write')
-    open(105, file='./solvers/llg/temporal/FC Microstates/Cooling.txt', action='write')
-    open(106, file='./solvers/llg/temporal/Signals.txt', action='write')
-    write(104, '(A1,A21,A23,A23,A23,A23,A23)') '#', 'Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', &
-                                                    'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]' 
-    write(105, '(A1,A21,A23,A23,A23,A23,A23)') '#', 'Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', &
-                                                    'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'                                                   
-    write(106, '(A1,A20,A23,A23,A23,A22)') '#', 't [s]', 'H_x [A/m]', 'H_y [A/m]', 'H_z [A/m]', 'T [K]'         
-    read(100, '(A)') header
-    read(101, '(A)') header
-    read(102, '(A)') header 
-    read(103, '(A)') header 
-    
-!---------------------------------------------------------------------------------------------------------------------------------------------------   
+!-----------------------------------------------------------------------------------------------------
 
-    ! Initial Conditions   
-    read(100, *) N, Ti, Tf, HS, H0, HK, alp, dt, X1, X2                                                               ! Read External Parameters
-    allocate(Rm, Rp, Om, Op, Mu(0:N-1), Em_ZFC(0:N-1, 0:2), Em_FC(0:N-1, 0:2), En_ZFC(0:N-1, 0:2), En_FC(0:N-1, 0:2)) ! Allocate Scalars and Arrays
-    allocate(SH(0:N-1))                                                                                               ! Allocate Arrays
-    read(101, *) (Rm, Rp, Om, Op, Mu(i), i=0,N-1)                                                                     ! Read Internal Parameters
-    read(102, *) (Em_ZFC(i, :), En_ZFC(i, :), i=0,N-1)                                                                ! Read ZFC Initial Conditions
-    read(103, *) (Em_FC(i, :), En_FC(i, :), i=0,N-1)                                                                  ! Read FC Initial Conditions
-    
-    tt     = X1 * X2 * dt            ! Total Time   
-    HS_ZFC = H_(0.0d0, 0.0d0, 0.0d0) ! Magnetic Field (ZFC Saturation)
-    HS_FC  = H_(HS, 0.0d0, 0.0d0)    ! Magnetic Field (FC Saturation)
-    H      = H_(H0, 0.0d0, 0.0d0)    ! Magnetic Field (Cooling)
-     
-!--------------------------------------------------------------------------------------------------------------------------------------------------- 
-    
+    ! Threads
+#ifdef THREADS
+    call omp_set_num_threads(THREADS)
+#endif
+
+!-----------------------------------------------------------------------------------------------------
+
+    ! Read Simulation File
+    call h5_open('./solvers/llg/temporal/Simulation.h5', file_id)
+
+    ! Read External Parameters
+    call h5_read_1d('/Parameters/External', file_id, 10, params)
+    N   = int(params(1))
+    Ti  = params(2)
+    Tf  = params(3)
+    HS  = params(4)
+    H0  = params(5)
+    HK  = params(6)
+    alp = params(7)
+    dt  = params(8)
+    X1  = int(params(9))
+    X2  = int(params(10))
+
+    ! Allocate Arrays
+    allocate(Rm(0:N-1), Rp(0:N-1), Om(0:N-1), Op(0:N-1), Mu(0:N-1))
+    allocate(Em_ZFC(0:2, 0:N-1), Em_FC(0:2, 0:N-1), En_ZFC(0:2, 0:N-1), En_FC(0:2, 0:N-1), SH(0:N-1))
+    allocate(signal_t(0:X1-1), signal_H(0:2, 0:X1-1), signal_T0(0:X1-1))
+
+    ! Read Intrinsic Parameters
+    call h5_read_1d('/Parameters/Intrinsic/Rm', file_id, N, Rm)
+    call h5_read_1d('/Parameters/Intrinsic/Rp', file_id, N, Rp)
+    call h5_read_1d('/Parameters/Intrinsic/Ωm', file_id, N, Om)
+    call h5_read_1d('/Parameters/Intrinsic/Ωp', file_id, N, Op)
+    call h5_read_1d('/Parameters/Intrinsic/μ', file_id, N, Mu)
+
+    ! Read Initial Conditions
+    call h5_read_2d('/Microstates/ZFC/Em/Initial', file_id, 3, N, Em_ZFC)
+    call h5_read_2d('/Microstates/ZFC/En/Initial', file_id, 3, N, En_ZFC)
+    call h5_read_2d('/Microstates/FC/Em/Initial', file_id, 3, N, Em_FC)
+    call h5_read_2d('/Microstates/FC/En/Initial', file_id, 3, N, En_FC)
+
+!-----------------------------------------------------------------------------------------------------
+
+    ! Physical Properties
+    tt     = X1 * X2 * dt           
+    HS_ZFC = H_(0.0d0, 0.0d0, 0.0d0)
+    HS_FC  = H_(HS, 0.0d0, 0.0d0)    
+    H      = H_(H0, 0.0d0, 0.0d0) 
+
+!-----------------------------------------------------------------------------------------------------
+
     ! Cooling
-    t  = 0.0d0                                                             ! Initial Time
-    T0 = T_(Ti, Tf, tt, t)                                                 ! Temperature
-    SH = SH_(N, Mu, T0, alp, dt)                                           ! Thermal Field Standard Deviations
+    t  = 0.0d0
+    T0 = T_(Ti, Tf, tt, t)
+
+    !$omp parallel private(k1, k2)
+    ! Physical Properties
+    call SH_(N, Mu, T0, alp, dt, SH)
+
     do k2 = 1, 10*X2
-        call evolution(N, Em_ZFC, En_ZFC, SH, HS_ZFC, HS_ZFC, HK, alp, dt) ! ZFC Evolution
-        call evolution(N, Em_FC, En_FC, SH, HS_FC, HS_FC, HK, alp, dt)     ! FC Evolution
+    
+        call evolution(N, Em_ZFC, En_ZFC, SH, HS_ZFC, HS_ZFC, HK, alp, dt)
+        call evolution(N, Em_FC, En_FC, SH, HS_FC, HS_FC, HK, alp, dt)
+        
     end do
-    
-    ! Save Cooling Microstates
-    write(104, '(E22.15, E23.15, E23.15, E23.15, E23.15, E23.15)') (Em_ZFC(i, :), En_ZFC(i, :), i=0,N-1)
-    write(105, '(E22.15, E23.15, E23.15, E23.15, E23.15, E23.15)') (Em_FC(i, :), En_FC(i, :), i=0,N-1)
-    
+
+    !$omp single
+    ! Save ZFC/FC Cooling Microstates
+    call h5_write_2d('/Microstates/ZFC/Em/Cooling', file_id, 3, N, Em_ZFC)
+    call h5_write_2d('/Microstates/ZFC/En/Cooling', file_id, 3, N, En_ZFC)
+    call h5_write_2d('/Microstates/FC/Em/Cooling', file_id, 3, N, Em_FC)
+    call h5_write_2d('/Microstates/FC/En/Cooling', file_id, 3, N, En_FC)
+
     ! Evolution
+    k = 0
+    !$omp end single
+
     do k1 = 1, X1
         do k2 = 1, X2
-            T0 = T_(Ti, Tf, tt, t)                                   ! Temperature  
-            SH = SH_(N, Mu, T0, alp, dt)                             ! Thermal Field Standard Deviations
-            t  = t + dt                                              ! Next Time
-            call evolution(N, Em_ZFC, En_ZFC, SH, H, H, HK, alp, dt) ! ZFC Evolution
-            call evolution(N, Em_FC, En_FC, SH, H, H, HK, alp, dt)   ! FC Evolution
+
+            !$omp single
+            T0 = T_(Ti, Tf, tt, t)
+            t  = t + dt
+            !$omp end single
+
+            call SH_(N, Mu, T0, alp, dt, SH)
+
+            call evolution(N, Em_ZFC, En_ZFC, SH, H, H, HK, alp, dt)
+            call evolution(N, Em_FC, En_FC, SH, H, H, HK, alp, dt)
+            
         end do
 
-            ! Save Signals
-            write(106, '(E21.15, E23.15, E23.15, E23.15, E22.15)') t, H(:), T0
+        !$omp single
+        ! Signals
+        signal_t(k)    = t
+        signal_H(:, k) = H
+        signal_T0(k)   = T0
 
-            ! Save ZFC Evolution Microstates
-            write(filename, '(A,I3.3,A)') './solvers/llg/temporal/ZFC Microstates/', k1, '.txt'
-            open(107, file=filename, action='write') 
-            write(107, '(A1,A21,A23,A23,A23,A23,A23)') '#', 'Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', &
-                                                            'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]'  
-            write(107, '(E22.15, E23.15, E23.15, E23.15, E23.15, E23.15)') (Em_ZFC(i, :), En_ZFC(i, :), i=0,N-1)
-            close(107)
+        ! Save ZFC/FC Evolution Microstates
+        write(file_name, '(I3.3)') k1
+        call h5_write_2d('/Microstates/ZFC/Em/' // file_name, file_id, 3, N, Em_ZFC)
+        call h5_write_2d('/Microstates/ZFC/En/' // file_name, file_id, 3, N, En_ZFC)
+        call h5_write_2d('/Microstates/FC/Em/' // file_name, file_id, 3, N, Em_FC)
+        call h5_write_2d('/Microstates/FC/En/' // file_name, file_id, 3, N, En_FC)
 
-            ! Save FC Evolution Microstates
-            write(filename, '(A,I3.3,A)') './solvers/llg/temporal/FC Microstates/', k1, '.txt'
-            open(108, file=filename, action='write') 
-            write(108, '(A1,A21,A23,A23,A23,A23,A23)') '#', 'Em_x [n.u.]', 'Em_y [n.u.]', 'Em_z [n.u.]', &
-                                                            'En_x [n.u.]', 'En_y [n.u.]', 'En_z [n.u.]' 
-            write(108, '(E22.15, E23.15, E23.15, E23.15, E23.15, E23.15)') (Em_FC(i, :), En_FC(i, :), i=0,N-1)
-            close(108)            
+        k = k + 1
+        !$omp end single
+
     end do
-    
-!---------------------------------------------------------------------------------------------------------------------------------------------------   
+    !$omp end parallel
 
-    ! Deallocate Scalars and Arrays, and Close/Delete Files
+!-----------------------------------------------------------------------------------------------------
+
+    ! Save Signals
+    call h5_write_1d('/Signals/Time', file_id, X1, signal_t)
+    call h5_write_2d('/Signals/Magnetic_Field', file_id, 3, X1, signal_H)
+    call h5_write_1d('/Signals/Temperature', file_id, X1, signal_T0)
+
+!-----------------------------------------------------------------------------------------------------
+
+    ! Deallocate Arrays and Close Files
     deallocate(Rm, Rp, Om, Op, Mu, Em_ZFC, Em_FC, En_ZFC, En_FC, SH)
-    close(100); close(101); close(102); close(103); close(104); close(105); close(106)
+    deallocate(signal_t, signal_H, signal_T0)
+    call h5_close(file_id)
 
-!---------------------------------------------------------------------------------------------------------------------------------------------------   
+!-----------------------------------------------------------------------------------------------------
 
 end program run_MvsT

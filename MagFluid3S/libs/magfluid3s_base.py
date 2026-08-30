@@ -11,6 +11,9 @@ import os
 class MagFluid3SBase:
     '''
     Initialization and execution.
+
+    Last Updated: 
+    - 16/08/2026
     '''
     
     def __init__(self, simulation, solver, input_file=None, output_folder=None):

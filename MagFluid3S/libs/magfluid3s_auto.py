@@ -7,10 +7,13 @@ import os
 
 #--------------------------------------------------------------------------------------------------------------
 
-# MagFluid3S Auto
+# MagFluid3S Automation
 class MagFluid3SAuto:
     '''
-    Automatization.
+    Automation.
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
     def __init__(self, simulation, solver, input_file=None, output_folder=None, properties=None, n=None):
@@ -22,7 +25,7 @@ class MagFluid3SAuto:
         -                      solver (str): Solver Version
         -        input_file (str, optional): Input File Path
         -     output_folder (str, optional): Output Folder Path
-        - properties ((str, ?), dict[?, ?]): Physical Properties Dict
+        - properties ((str, ?), dict[?, ?]): Physical Properties
         -                 n (int, optional): Number of Experiments
         '''
 

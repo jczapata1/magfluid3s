@@ -12,14 +12,17 @@ def make_input_file(path1, path2, properties):
     Input:
     -                       path1 (str): Input Path
     -                       path2 (str): Output Path
-    - properties ((str, ?), dict[?, ?]): Physical Properties Dict
+    - properties ((str, ?), dict[?, ?]): Physical Properties
     
     Output:
     - None
     - Input File
 
     Used by:
-    - auto.run.run
+    - libs.auto.run.run
+
+    Last Updated: 
+    - 16/08/2026
     '''
     
     # Create Input File      
@@ -37,6 +40,39 @@ def make_input_file(path1, path2, properties):
     
 #-------------------------------------------------------------------------------------------------
 
+# Create Group
+def h5_create_group(group, parameters):
+    '''
+    Create an HDF5 group.
+
+    Input:
+    -            group (h5py.Group): HDF5 Group
+    - parameters ((?, ), list[?, ]): Parameters
+
+    Output:
+    -         subgroup (h5py.Group): HDF5 Subgroup
+
+    Used by:
+    - libs.auto.data.data_MvsH
+    - libs.auto.data.data_MvsT
+
+    Last Updated: 
+    - 16/08/2026
+    '''
+
+    # Parameters
+    name, mean, std, error = parameters
+
+    # Subgroup
+    subgroup = group.create_group(name)
+    subgroup.attrs['Mean']  = mean
+    subgroup.attrs['Std']   = std
+    subgroup.attrs['Error'] = error
+
+    return subgroup
+
+#-------------------------------------------------------------------------------------------------
+
 # Folder to Zip
 def folder_zip(path):
     '''
@@ -50,12 +86,18 @@ def folder_zip(path):
     - Folder ZIP 
 
     Used by:
-    - auto.data.data_Microstates
-    - auto.data.data_MvsH
-    - auto.data.data_MvsT
+    - libs.auto.data.data_Microstates
+    - libs.auto.data.data_MvsH
+    - libs.auto.data.data_MvsT
+
+    Last Updated: 
+    - 16/08/2026
     '''   
 
-    shutil.make_archive(path, 'zip', path) # Folder to ZIP
-    shutil.rmtree(path)                    # Delete Folder   
+    # Folder to ZIP
+    shutil.make_archive(path, 'zip', path) 
+
+    # Delete Folder  
+    shutil.rmtree(path)                     
 
     return None

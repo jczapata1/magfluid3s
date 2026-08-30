@@ -10,6 +10,9 @@ from libs.post.plot import plot
 class MagFluid3S(MagFluid3SBase):
     '''
     Data processing and visualization.
+
+    Last Updated: 
+    - 16/08/2026
     '''
     
     @benchmark

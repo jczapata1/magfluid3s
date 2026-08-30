@@ -8,7 +8,7 @@ import os
 # Run Simulation   
 def run(simulation, solver):
     '''
-    Run the simulation based on the specified simulation type and solver version.
+    Run a simulation.
 
     Input:
     - simulation (str): Simulation Type
@@ -18,8 +18,11 @@ def run(simulation, solver):
     - None
 
     Used by:
-    - magfluid3s_base.MagFluid3SBase.run
-    - magfluid3s.MagFluid3S.run    
+    - libs.magfluid3s_base.MagFluid3SBase.run
+    - libs.magfluid3s.MagFluid3S.run    
+
+    Last Updated: 
+    - 16/08/2026
     '''        
     
     if (simulation not in ['Microstates', 'MvsH', 'MvsT']):

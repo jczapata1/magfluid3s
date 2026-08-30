@@ -20,9 +20,12 @@ def si_scale(value, unit=''):
     -   label (str): Prefixed Unit Label
     
     Used by:
-    - post.plot.plot_Microstates 
-    - post.plot.plot_MvsH 
-    - auto.plot.plot_MvsH
+    - libs.post.plot.plot_Microstates 
+    - libs.post.plot.plot_MvsH 
+    - libs.auto.plot.plot_MvsH
+
+    Last Updated: 
+    - 16/08/2026
     '''    
 
     # SI Prefixes
@@ -55,15 +58,21 @@ def si_format(value, unit=''):
     -    text (str): Formatted Value
     
     Used by:
-    - post.plot.plot_Microstates 
-    - post.plot.plot_MvsH 
-    - post.plot.plot_MvsT
-    - auto.plot.plot_MvsH
-    - auto.plot.plot_MvsT
+    - libs.post.plot.plot_Microstates 
+    - libs.post.plot.plot_MvsH 
+    - libs.post.plot.plot_MvsT
+    - libs.auto.plot.plot_MvsH
+    - libs.auto.plot.plot_MvsT
+
+    Last Updated: 
+    - 16/08/2026
     '''    
-    
-    scale, label = si_scale(value, unit)        # Identify Scale and Prefix      
-    text         = f'${value/scale:g}$ {label}' # Formatted Text
+
+    # Identify Scale and Prefix  
+    scale, label = si_scale(value, unit)   
+
+    # Formatted Text
+    text = f'${value/scale:g}$ {label}' 
     
     return text
 
@@ -75,21 +84,27 @@ def vol_magnetization(Vm, μ, Em):
     Calculate the volumetric magnetization of a set of magnetic nanoparticles.
 
     Input:
-    -                      Vm (float): Total Core Volume
-    - μ  (float, numpy.ndarray[N, 1]): Magnetic Moments (Magnitude) List
-    - Em (float, numpy.ndarray[N, 3]): Magnetic Moments (Vector) List
+    -                          Vm (float): Total Core Volume
+    -   μ ((float, ), numpy.ndarray[N, ]): Magnetic Moments (Magnitude)
+    - Em ((float, ), numpy.ndarray[N, 3]): Magnetic Moments (Vector)
 
     Output:
-    -  M (float, numpy.ndarray[3, 1]): Volumetric Magnetization
+    -   M ((float, ), numpy.ndarray[3, ]): Volumetric Magnetization
     
     Used by:
-    - post.data.data_Microstates 
-    - post.data.data_MvsH 
-    - post.data.data_MvsT
+    - libs.post.data.data_Microstates 
+    - libs.post.data.data_MvsH 
+    - libs.post.data.data_MvsT
+
+    Last Updated: 
+    - 16/08/2026
     '''    
-    
-    μ = μ.reshape(-1, 1)          # Reshape Array
-    M = np.sum(μ*Em, axis=0) / Vm # Volumetric Magnetization
+
+    # Reshape Array
+    μ = μ.reshape(-1, 1)   
+
+    # Volumetric Magnetization
+    M = np.sum(μ*Em, axis=0) / Vm
         
     return M
 
@@ -101,19 +116,22 @@ def MR_HC(X0, X1, H, M):
     Calculate the remanent magnetization and the coercive field.
 
     Input:
-    -                        X0 (int): Number of Loops 
-    -                        X1 (int): Curve Points    
-    - H (float, numpy.ndarray[X1, 1]): Magnetic Field List
-    - M (float, numpy.ndarray[X1, 1]): Volumetric Magnetization List
+    -                           X0 (int): Number of Loops 
+    -                           X1 (int): Curve Points    
+    - H ((float, ), numpy.ndarray[X1, ]): Magnetic Field
+    - M ((float, ), numpy.ndarray[X1, ]): Volumetric Magnetization
 
     Output:
-    -                    MR_u (float): Remanent Magnetization (Up)
-    -                    MR_d (float): Remanent Magnetization (Down)
-    -                    HC_l (float): Coercive Field (Left)
-    -                    HC_r (float): Coercive Field (Right)
+    -                       MR_u (float): Remanent Magnetization (Up)
+    -                       MR_d (float): Remanent Magnetization (Down)
+    -                       HC_l (float): Coercive Field (Left)
+    -                       HC_r (float): Coercive Field (Right)
     
     Used by:
-    - post.data.data_MvsH 
+    - libs.post.data.data_MvsH 
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
     # latest Loop
@@ -161,16 +179,19 @@ def MvsH_area(X0, X1, H, M):
     Calculate the MvsH loop area.
 
     Input:
-    -                        X0 (int): Number of Loops 
-    -                        X1 (int): Curve Points    
-    - H (float, numpy.ndarray[X1, 1]): Magnetic Field List
-    - M (float, numpy.ndarray[X1, 1]): Volumetric Magnetization List
+    -                           X0 (int): Number of Loops 
+    -                           X1 (int): Curve Points    
+    - H ((float, ), numpy.ndarray[X1, ]): Magnetic Field
+    - M ((float, ), numpy.ndarray[X1, ]): Volumetric Magnetization
 
     Output:
-    -                       A (float): MvsH Loop Area
+    -                          A (float): MvsH Loop Area
     
     Used by:
-    - post.data.data_MvsH 
+    - libs.post.data.data_MvsH 
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
     # Latest Loop
@@ -193,15 +214,18 @@ def ΔM_ρTB(T, ΔM):
     Calculate and fit the ZFC-FC magnetization difference and the blocking temperature distribution.
 
     Input:
-    -     T (float, numpy.ndarray[X1, 1]): Temperature List
-    -     ΔM(float, numpy.ndarray[X1, 1]): ZFC-FC Magnetization Difference List
+    -     T ((float, ), numpy.ndarray[X1, ]): Temperature
+    -     ΔM((float, ), numpy.ndarray[X1, ]): ZFC-FC Magnetization Difference
 
-    Output: 
-    -  ΔM_f (float, numpy.ndarray[X1, 1]): ZFC-FC Magnetization Difference List (Fitted)
-    - ρTB_f (float, numpy.ndarray[X1, 1]): Blocking Temperature Distribution List (Fitted)  
+    Output:
+    -  ΔM_f ((float, ), numpy.ndarray[X1, ]): ZFC-FC Magnetization Difference (Fitted)
+    - ρTB_f ((float, ), numpy.ndarray[X1, ]): Blocking Temperature Distribution (Fitted)
 
     Used by:
-    - post.data.data_MvsT    
+    - libs.post.data.data_MvsT    
+
+    Last Updated: 
+    - 16/08/2026
     '''    
 
     # Feature Scaling

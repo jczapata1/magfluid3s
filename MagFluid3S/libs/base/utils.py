@@ -2,6 +2,7 @@
 from scipy.stats import t
 import numpy as np
 import shutil
+import h5py
 import os
 
 #------------------------------------------------------------------------------------------
@@ -12,121 +13,123 @@ def mean_std_error(X, data, stds=None):
     Calculate the mean, standard deviation, and the margin of error for a given dataset.
 
     Input:
-    -                          X (int): Data Size
-    - data (float, numpy.narray[?, 1]): Data List
-    - stds (float, numpy.narray[?, 1]): Standard Deviations List
+    -                             X (int): Data Size
+    - data ((float, ), numpy.narray[?, ]): Data
+    - stds ((float, ), numpy.narray[?, ]): Standard Deviations
 
     Output:
-    -                     mean (float): Mean    
-    -                      std (float): Standard Deviation        
-    -                    error (float): Margin of Error 
-    
+    -                        mean (float): Mean
+    -                         std (float): Standard Deviation
+    -                       error (float): Margin of Error
+
     Used by:
-    - base.initialize.initial_Microstates
-    - base.initialize.initial_MvsH
-    - base.initialize.initial_MvsT
-    - auto.data.data_MvsH
-    - auto.data.data_MvsT
-    '''  
+    - libs.base.initialize.initial_Microstates
+    - libs.base.initialize.initial_MvsH
+    - libs.base.initialize.initial_MvsT
+    - libs.auto.data.data_MvsH
+    - libs.auto.data.data_MvsT
+
+    Last Updated: 
+    - 16/08/2026
+    '''
 
     if (stds is None):
-        m   = 1                                                    # t-Student m-Parameter 
-        n   = X                                                    # t-Student n-Parameter 
+        m   = 1                                                    # t-Student m-Parameter
+        n   = X                                                    # t-Student n-Parameter
         std = np.std(data, ddof=1)                                 # Standard Deviation
     else:
-        m   = len(stds)                                            # t-Student m-Parameter                                    
+        m   = len(stds)                                            # t-Student m-Parameter
         n   = m*X                                                  # t-Student n-Parameter
         std = np.sqrt(np.sum((X-1) * np.array(stds)**2) / (n - 1)) # Pooled Variance
 
     mean  = np.mean(data)                            # Mean
     error = t.ppf(0.9950, df=n-1) * (std/np.sqrt(n)) # Margin of Error (99%)
-        
-    return mean, std, error 
+
+    return mean, std, error
 
 #------------------------------------------------------------------------------------------
 
-# Summary File
-def summary_file(parameters, path, simulation):
+# Make Summary
+def make_summary(summary, simulation, parameters):
     '''
-    Make a summary file with the simulation parameters.
+    Make a simulation summary by type.
 
     Input:
-    - parameters ((str, ?), dict[?, ?]): Parameters of Simulation Dict
-    -                        path (str): Output Path
+    -              summary (h5py.Group): Summary Group
     -                  simulation (str): Simulation Type
+    - parameters ((str, ?), dict[?, ?]): Parameters
 
     Output:
     - None
-    - Summary File
-    
+    - Simulation.h5
+
     Used by:
-    - base.initialize.initial_Microstates
-    - base.initialize.initial_MvsH
-    - base.initialize.initial_MvsT
+    - libs.base.initialize.initial_Microstates
+    - libs.base.initialize.initial_MvsH
+    - libs.base.initialize.initial_MvsT
+
+    Last Updated: 
+    - 16/08/2026
     '''
-    
-    with open(os.path.join(path, 'Summary.txt'), 'w') as file:     
-        file.write('# Summary\n\n')
-        file.write('# Parameter                 Value Unit\n')
-    
-        # Internal
-        file.write(f'        RM: {parameters["RM"]:21.15e} m       \n')
-        file.write(f'       σRM: {parameters["σRM"]:21.1f} n.u.    \n')
-        file.write(f'      <Rm>: {parameters["<Rm>"]:21.15e} m     \n')
-        file.write(f'     σ<Rm>: {parameters["σ<Rm>"]:21.15e} m    \n')    
-        file.write(f'     <Rm>e: {parameters["<Rm>e"]:21.15e} m    \n') 
-        file.write(f'         δ: {parameters["δ"]:21.15e} m        \n')
-        file.write(f'        σδ: {parameters["σδ"]:21.1f} n.u.     \n')      
-        file.write(f'        RP: {parameters["RP"]:21.15e} m       \n')
-        file.write(f'      <Rp>: {parameters["<Rp>"]:21.15e} m     \n')
-        file.write(f'     σ<Rp>: {parameters["σ<Rp>"]:21.15e} m    \n')          
-        file.write(f'     <Rp>e: {parameters["<Rp>e"]:21.15e} m    \n')      
-        file.write(f'        ΩM: {parameters["ΩM"]:21.15e} m3      \n')
-        file.write(f'      <Ωm>: {parameters["<Ωm>"]:21.15e} m3    \n')
-        file.write(f'     σ<Ωm>: {parameters["σ<Ωm>"]:21.15e} m3   \n')          
-        file.write(f'     <Ωm>e: {parameters["<Ωm>e"]:21.15e} m3   \n')    
-        file.write(f'        ΩP: {parameters["ΩP"]:21.15e} m3      \n')
-        file.write(f'      <Ωp>: {parameters["<Ωp>"]:21.15e} m3    \n')
-        file.write(f'     σ<Ωp>: {parameters["σ<Ωp>"]:21.15e} m3   \n')          
-        file.write(f'     <Ωp>e: {parameters["<Ωp>e"]:21.15e} m3   \n')    
-        file.write(f'        ρM: {parameters["ρM"]:21.15e} g/cm3   \n')
-        file.write(f'        MS: {parameters["MS"]:21.15e} A/m     \n')
-        file.write(f'      Keff: {parameters["Keff"]:21.15e} J/m3  \n')
-        file.write(f'        HK: {parameters["HK"]:21.15e} A/m     \n')
-        file.write(f'         α: {parameters["α"]:21.15e} n.u.     \n')
-        file.write(f'        θM: {parameters["θM"]:21} rad         \n')
-        file.write(f'        θN: {parameters["θN"]:21} rad         \n')
-        file.write(f'         N: {parameters["N"]:21} n.u.         \n')
-        
-        # External
-        if (simulation == 'Microstates' or simulation == 'MvsH'):
-            file.write(f'        T0: {parameters["T0"]:21.15e} K   \n')
-            file.write(f'        H0: {parameters["H0"]:21.15e} A/m \n')
-        
-        if (simulation == 'MvsT'):
-            file.write(f'        Ti: {parameters["Ti"]:21.15e} K   \n')
-            file.write(f'        Tf: {parameters["Tf"]:21.15e} K   \n')
-            file.write(f'        HS: {parameters["HS"]:21.15e} A/m \n')
-            file.write(f'        H0: {parameters["H0"]:21.15e} A/m \n')
-  
-        # Time and Steps
-        file.write(f'        dt: {parameters["dt"]:21.15e} s       \n')
 
-        # Simulation Type
-        if (simulation == 'Microstates'):
-            file.write(f'        X2: {parameters["X2"]:21} n.u.      ')
+    # Intrinsic
+    summary.attrs['RM']    = parameters['RM']
+    summary.attrs['σRM']   = parameters['σRM']
+    summary.attrs['<Rm>']  = parameters['<Rm>']
+    summary.attrs['σ<Rm>'] = parameters['σ<Rm>']
+    summary.attrs['<Rm>e'] = parameters['<Rm>e']
+    summary.attrs['δ']     = parameters['δ']
+    summary.attrs['σδ']    = parameters['σδ']
+    summary.attrs['RP']    = parameters['RP']
+    summary.attrs['<Rp>']  = parameters['<Rp>']
+    summary.attrs['σ<Rp>'] = parameters['σ<Rp>']
+    summary.attrs['<Rp>e'] = parameters['<Rp>e']
+    summary.attrs['ΩM']    = parameters['ΩM']
+    summary.attrs['<Ωm>']  = parameters['<Ωm>']
+    summary.attrs['σ<Ωm>'] = parameters['σ<Ωm>']
+    summary.attrs['<Ωm>e'] = parameters['<Ωm>e']
+    summary.attrs['ΩP']    = parameters['ΩP']
+    summary.attrs['<Ωp>']  = parameters['<Ωp>']
+    summary.attrs['σ<Ωp>'] = parameters['σ<Ωp>']
+    summary.attrs['<Ωp>e'] = parameters['<Ωp>e']
+    summary.attrs['ρM']    = parameters['ρM']
+    summary.attrs['MS']    = parameters['MS']
+    summary.attrs['Keff']  = parameters['Keff']
+    summary.attrs['HK']    = parameters['HK']
+    summary.attrs['α']     = parameters['α']
+    summary.attrs['θM']    = parameters['θM']
+    summary.attrs['θN']    = parameters['θN']
+    summary.attrs['N']     = parameters['N']
 
-        if (simulation == 'MvsT'):
-            file.write(f'        X1: {parameters["X1"]:21} n.u.    \n')
-            file.write(f'        X2: {parameters["X2"]:21} n.u.      ')
-        
-        if (simulation == 'MvsH'):
-            file.write(f'        X0: {parameters["X0"]:21} n.u.    \n')
-            file.write(f'        X1: {parameters["X1"]:21} n.u.    \n')
-            file.write(f'        X2: {parameters["X2"]:21} n.u.    \n')
-            file.write(f'         f: {parameters["f"]:21.15e} Hz     ')
-          
-    return None  
+    # External
+    if (simulation == 'Microstates' or simulation == 'MvsH'):
+        summary.attrs['T0'] = parameters['T0']
+        summary.attrs['H0'] = parameters['H0']
+
+    if (simulation == 'MvsT'):
+        summary.attrs['Ti'] = parameters['Ti']
+        summary.attrs['Tf'] = parameters['Tf']
+        summary.attrs['HS'] = parameters['HS']
+        summary.attrs['H0'] = parameters['H0']
+
+    # Time
+    summary.attrs['dt'] = parameters['dt']
+
+    # Simulation Type
+    if (simulation == 'Microstates'):
+        summary.attrs['X2'] = parameters['X2']
+
+    if (simulation == 'MvsT'):
+        summary.attrs['X1'] = parameters['X1']
+        summary.attrs['X2'] = parameters['X2']
+
+    if (simulation == 'MvsH'):
+        summary.attrs['X0'] = parameters['X0']
+        summary.attrs['X1'] = parameters['X1']
+        summary.attrs['X2'] = parameters['X2']
+        summary.attrs['f']  = parameters['f']
+
+    return None
 
 #------------------------------------------------------------------------------------------
 
@@ -140,22 +143,24 @@ def make_folder(path):
 
     Output:
     - None
-    - Folder     
+    - Folder
 
     Used by:
-    - base.initialize.initialize
-    - auto.data.data_Microstates
-    - auto.run.run
-    '''   
+    - libs.auto.data.data_Microstates
+    - libs.auto.run.run
+
+    Last Updated: 
+    - 16/08/2026
+    '''
 
     # Create
     if not (os.path.exists(path)):
-        os.makedirs(path) 
+        os.makedirs(path)
 
     # Delete and Create
-    else: 
+    else:
         shutil.rmtree(path)
-        os.makedirs(path)   
+        os.makedirs(path)
 
     return None
 
@@ -167,16 +172,19 @@ def clean_folder(path, keep=[]):
     Clean a folder, except specified items.
 
     Input:
-    -              path (str): Folder Path
-    -  keep (str, list[?, 1]): Excluded Items List
+    -                 path (str): Folder Path
+    -  keep ((str, ), list[?, ]): Excluded Items
 
     Output:
     - None
 
     Used by:
-    - base.utils.make_files 
+    - libs.base.utils.make_files
+
+    Last Updated: 
+    - 16/08/2026
     '''
-    
+
     for item in os.listdir(path):
 
         # Excluded Items
@@ -187,7 +195,7 @@ def clean_folder(path, keep=[]):
 
         # Remove Items
         if (os.path.isdir(item_path)):
-            shutil.rmtree(item_path) 
+            shutil.rmtree(item_path)
         else:
             os.remove(item_path)
 
@@ -201,25 +209,28 @@ def make_files(path1, path2, path3):
     Move folder contents to another.
 
     Input:
-    - path1 (str): Input Path    
-    - path2 (str): Output Path    
-    - path3 (str): Source Path    
+    - path1 (str): Input Path
+    - path2 (str): Output Path
+    - path3 (str): Source Path
 
     Output:
-    - None 
+    - None
 
     Used by:
-    - magfluid3s_base.MagFluid3SBase.make_files
-    - magfluid3s.MagFluid3S.make_files    
-    '''   
-    
+    - libs.magfluid3s_base.MagFluid3SBase.make_files
+    - libs.magfluid3s.MagFluid3S.make_files
+
+    Last Updated: 
+    - 16/08/2026
+    '''
+
     # Clean Output (Except Input File)
     clean_folder(path2, keep=[os.path.basename(path1)])
-    
+
     # Move from Source to Output
     shutil.copytree(path3, path2, dirs_exist_ok=True)
-    
+
     # Clean Source
-    clean_folder(path3)                         
- 
+    clean_folder(path3)
+
     return None

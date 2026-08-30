@@ -1,10 +1,9 @@
 # Plot
 from libs.post.utils import si_scale, si_format
-import matplotlib.gridspec as gridspec
 from libs.base.constants import μ0
-import matplotlib.pyplot as plt
 from libs.style import *
 import numpy as np
+import h5py
 import os
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -12,7 +11,7 @@ import os
 # Plot
 def plot(simulation, path):
     '''
-    Process the plots based on the specified simulation type.
+    Process the automation plot file.
 
     Input:
     - simulation (str): Simulation Type
@@ -22,15 +21,21 @@ def plot(simulation, path):
     - None
 
     Used by:
-    - magfluid3s_auto.MagFluid3SAuto.plot_summary 
+    - libs.magfluid3s_auto.MagFluid3SAuto.plot_summary 
+
+    Last Updated: 
+    - 16/08/2026
     '''
 
     if (simulation == 'Microstates'):
         plot_Microstates(path)
+        
     elif (simulation == 'MvsH'):
         plot_MvsH(path)
+        
     elif (simulation == 'MvsT'):
         plot_MvsT(path)
+        
     else:
         raise ValueError("Invalid Simulation Type!. Use 'Microstates', 'MvsH', or 'MvsT'.")
         
@@ -50,7 +55,10 @@ def plot_Microstates(path):
     - None
 
     Used by:
-    - auto.plot.plot
+    - libs.auto.plot.plot
+
+    Last Updated: 
+    - 16/08/2026
     '''   
 
     # Empty
@@ -72,18 +80,36 @@ def plot_MvsH(path):
     - MvsH Figure
 
     Used by:
-    - auto.plot.plot
+    - libs.auto.plot.plot
+
+    Last Updated: 
+    - 16/08/2026
     '''       
-    
+
     # Data Reading
-    t, H, M_m, M_e = np.loadtxt(os.path.join(path, 'M(t,H;T).txt'), usecols=(0, 1, 2, 4), unpack=True)
-    C1             = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)  
-    C2             = np.loadtxt(os.path.join(path, 'ThermodynamicProperties.txt'), usecols=(1, 3))
-    MS, T0, H0, f  = C1[8], C1[15], C1[16], C1[21]  
-    MR_m, MR_e     = C2[5, 0]/MS, C2[5, 1]/MS
-    HC_m, HC_e     = C2[6, 0]/H0, C2[6, 1]/H0
-    SLP_0          = C2[7, 0]
-    SLP_m, SLP_e   = C2[8, 0]/SLP_0, C2[8, 1]/SLP_0
+    with h5py.File(os.path.join(path, 'AutoSimulation.h5'), 'r') as file:
+
+        # Summary
+        MS = file['/Summary'].attrs['MS']
+        T0 = file['/Summary'].attrs['T0']
+        H0 = file['/Summary'].attrs['H0']
+        f  = file['/Summary'].attrs['f']
+
+        # Thermodynamic Properties
+        MR_m  = file['/Thermodynamic_Properties/MR'].attrs['Mean'] / MS
+        MR_e  = file['/Thermodynamic_Properties/MR'].attrs['Error'] / MS
+        HC_m  = file['/Thermodynamic_Properties/HC'].attrs['Mean'] / H0
+        HC_e  = file['/Thermodynamic_Properties/HC'].attrs['Error'] / H0
+        SLP0  = file['/Thermodynamic_Properties/SLP'].attrs['SLP0']
+        SLP_m = file['/Thermodynamic_Properties/SLP'].attrs['Mean'] / SLP0
+        SLP_e = file['/Thermodynamic_Properties/SLP'].attrs['Error'] / SLP0
+
+        # Signals
+        t   = file['/Signals/Time'][:]
+        H   = file['/Signals/Magnetic_Field'][:]
+        M   = file['/Signals/Volumetric_Magnetization'][:]
+        M_m = M[:, 0]
+        M_e = M[:, 2]
 
     # Text
     t1   = f'$\\langle M_{{R}} \\rangle = ({ MR_m:0.2f} \\pm { MR_e:0.2f}) M_{{S}}$  \n' 
@@ -147,17 +173,40 @@ def plot_MvsT(path):
     - MvsT Figure
 
     Used by:
-    - auto.plot.plot
+    - libs.auto.plot.plot
+
+    Last Updated: 
+    - 16/08/2026
     ''' 
 
     # Data Reading
-    T, M_ZFC_m, M_ZFC_e, M_FC_m, M_FC_e = np.loadtxt(os.path.join(path, 'M(t,T;H).txt'), usecols=(1, 2, 4, 5, 7), unpack=True) 
-    ΔM_m, ΔM_f_m, ΔM_f_e                = np.loadtxt(os.path.join(path, 'ΔM(t,T;H).txt'), usecols=(2, 5, 7), unpack=True)     
-    ρTB_m, ρTB_f_m, ρTB_f_e             = np.loadtxt(os.path.join(path, 'ρTB(t,T;H).txt'), usecols=(2, 5, 7), unpack=True)     
-    C1                                  = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)  
-    C2                                  = np.loadtxt(os.path.join(path, 'ThermodynamicProperties.txt'), usecols=(1, 3)) 
-    MS, HS, H0 = C1[8], C1[17], C1[18]                                        
-    TB_m, TB_e = C2[5, 0], C2[5, 1]
+    with h5py.File(os.path.join(path, 'AutoSimulation.h5'), 'r') as file:
+
+        # Summary
+        MS = file['/Summary'].attrs['MS']
+        HS = file['/Summary'].attrs['HS']
+        H0 = file['/Summary'].attrs['H0']
+
+        # Thermodynamic Properties
+        TB_m = file['/Thermodynamic_Properties/TB'].attrs['Mean']
+        TB_e = file['/Thermodynamic_Properties/TB'].attrs['Error']
+        
+        # Signals
+        T       = file['/Signals/Temperature'][:]
+        M_ZFC   = file['/Signals/Volumetric_Magnetization_ZFC'][:]
+        M_ZFC_m = M_ZFC[:, 0]
+        M_ZFC_e = M_ZFC[:, 2]
+        M_FC    = file['/Signals/Volumetric_Magnetization_FC'][:]
+        M_FC_m  = M_FC[:, 0]
+        M_FC_e  = M_FC[:, 2]
+        ΔM_m    = file['/Signals/ΔM'][:, 0]
+        ΔM_f    = file['/Signals/ΔM_Fitted'][:]
+        ΔM_f_m  = ΔM_f[:, 0]
+        ΔM_f_e  = ΔM_f[:, 2]
+        ρTB_m   = file['/Signals/ρTB'][:, 0]
+        ρTB_f   = file['/Signals/ρTB_Fitted'][:]
+        ρTB_f_m = ρTB_f[:, 0]
+        ρTB_f_e = ρTB_f[:, 2]
 
     # Text
     t1   = f'$\\langle T_{{B}} \\rangle = ({TB_m:0.0f} \\pm {TB_e:0.0f})$ K'

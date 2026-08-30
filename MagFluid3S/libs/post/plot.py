@@ -1,10 +1,9 @@
 # Plot
 from libs.post.utils import si_scale, si_format
-import matplotlib.gridspec as gridspec
 from libs.base.constants import μ0
-import matplotlib.pyplot as plt
 from libs.style import *
 import numpy as np
+import h5py
 import os
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -12,26 +11,32 @@ import os
 # Plot
 def plot(simulation, path, **kwargs):
     '''
-    Process the plots based on the specified simulation type.
+    Process the simulation plot file.
 
     Input:
-    -                 simulation (str): Simulation Type
-    -                       path (str): Output Path
-    - kwargs ((int, str), tuple[2, 1]): Microstates Plot Arguments Tuple
+    -             simulation (str): Simulation Type
+    -                   path (str): Output Path
+    - kwargs ((?, ?), tuple[?, ?]): Microstates Plot Arguments
 
     Output:
     - None
     
     Used by:
-    - magfluid3s.MagFluid3S.plot_summary 
+    - libs.magfluid3s.MagFluid3S.plot_summary 
+
+    Last Updated: 
+    - 16/08/2026
     '''
     
     if (simulation == 'Microstates'):
         plot_Microstates(kwargs['args'][0], path, kwargs['args'][1])
+        
     elif (simulation == 'MvsH'):
         plot_MvsH(path)
+        
     elif (simulation == 'MvsT'):
         plot_MvsT(path)
+        
     else:
         raise ValueError("Invalid Simulation Type!. Use 'Microstates', 'MvsH', or 'MvsT'.")
         
@@ -54,27 +59,39 @@ def plot_Microstates(X, path, solver):
     - Microstates Figure
     
     Used by:
-    - post.plot.plot 
+    - libs.post.plot.plot 
+
+    Last Updated: 
+    - 16/08/2026
     '''            
 
     # Data Reading
-    t, M       = np.loadtxt(os.path.join(path, 'M(t;H,T).txt'), usecols=(0, 3), unpack=True)
-    summary    = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    MS, T0, H0 = summary[20], summary[27], summary[28]
-    Em1        = np.loadtxt(os.path.join(path, 'One_Particle_Microstates.txt'))[:, :3]
-    En1        = np.loadtxt(os.path.join(path, 'One_Particle_Microstates.txt'))[:, 3:]
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'r') as file:
+
+        # Microstates
+        Em1 = file['/Microstates/One_Particle/Em1'][:]
+        En1 = file['/Microstates/One_Particle/En1'][:]
+
+        # Summary
+        MS = file['/Summary'].attrs['MS']
+        T0 = file['/Summary'].attrs['T0']
+        H0 = file['/Summary'].attrs['H0']
+
+        # Signals
+        t = file['/Signals/Time'][:]
+        M = file['/Signals/Volumetric_Magnetization'][:, 2]
 
     # Data Processing
-    X2         = len(t)                                                           # Integration Steps 
-    t0, t_unit = si_scale(np.max(t), 's')                                         # Time SI Scale and Unit
-    H          = np.array([0.0, 0.0, 1.0]); h = (1.0 + 1.0/3.0) * H               # Magnetic Field
-    Ame        = np.array([np.arccos(np.dot(Em1[i], En1[i])) for i in range(X2)]) # EmEn Angle
-    Amh        = np.array([np.arccos(np.dot(Em1[i], H)) for i in range(X2)])      # EmH Angle
-    Aeh        = np.array([np.arccos(np.dot(En1[i], H)) for i in range(X2)])      # EnH Angle
-    u          = np.linspace(0.0, 2.0*np.pi, 50); v = np.linspace(0.0, np.pi, 50) # Sphere Parametrization
-    x          = np.outer(np.cos(u), np.sin(v))                                   # Sphere-x Coordinate
-    y          = np.outer(np.sin(u), np.sin(v))                                   # Sphere-y Coordinate
-    z          = np.outer(np.ones(np.size(u)), np.cos(v))                         # Sphere-z Coordinate
+    X2         = len(t)                                                         
+    t0, t_unit = si_scale(np.max(t), 's')                                         
+    H          = np.array([0.0, 0.0, 1.0]); h = (1.0 + 1.0/3.0) * H               
+    Ame        = np.array([np.arccos(np.dot(Em1[i], En1[i])) for i in range(X2)])
+    Amh        = np.array([np.arccos(np.dot(Em1[i], H)) for i in range(X2)])      
+    Aeh        = np.array([np.arccos(np.dot(En1[i], H)) for i in range(X2)])      
+    u          = np.linspace(0.0, 2.0*np.pi, 50); v = np.linspace(0.0, np.pi, 50) 
+    x          = np.outer(np.cos(u), np.sin(v))                                  
+    y          = np.outer(np.sin(u), np.sin(v))                                  
+    z          = np.outer(np.ones(np.size(u)), np.cos(v))                       
     
     # Figure
     fig      = plt.figure(figsize=(10, 4))
@@ -145,14 +162,33 @@ def plot_MvsH(path):
     - MvsH Figure
     
     Used by:
-    - post.plot.plot 
+    - libs.post.plot.plot 
+
+    Last Updated: 
+    - 16/08/2026
     '''     
 
     # Data Reading
-    t, H, M                     = np.loadtxt(os.path.join(path, 'M(t,H;T).txt'), usecols=(0, 3, 6), unpack=True)
-    summary                     = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    MS, T0, H0, f, SLP0         = summary[20], summary[27], summary[28], summary[33], summary[39]
-    MR_u, MR_d, HC_l, HC_r, SLP = summary[35]/MS, summary[36]/MS, summary[37]/H0, summary[38]/H0, summary[40]/SLP0
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'r') as file:
+
+        # Summary
+        MS   = file['/Summary'].attrs['MS']
+        T0   = file['/Summary'].attrs['T0']
+        H0   = file['/Summary'].attrs['H0']
+        f    = file['/Summary'].attrs['f']
+
+        # Thermodynamic Properties
+        MR_u = file['/Thermodynamic_Properties'].attrs['MR_u'] / MS
+        MR_d = file['/Thermodynamic_Properties'].attrs['MR_d'] / MS
+        HC_l = file['/Thermodynamic_Properties'].attrs['HC_l'] / H0
+        HC_r = file['/Thermodynamic_Properties'].attrs['HC_r'] / H0
+        SLP0 = file['/Thermodynamic_Properties'].attrs['SLP0']
+        SLP  = file['/Thermodynamic_Properties'].attrs['SLP'] / SLP0
+
+        # Signals
+        t = file['/Signals/Time'][:]
+        H = file['/Signals/Magnetic_Field'][:, 2]
+        M = file['/Signals/Volumetric_Magnetization'][:, 2]
     
     # Text
     t1   = f'$M_{{R}}^{{u}} = {MR_u:0.2f} M_{{S}}$ \n'
@@ -217,15 +253,31 @@ def plot_MvsT(path):
     - MvsT Figure
     
     Used by:
-    - post.plot.plot 
+    - libs.post.plot.plot 
+
+    Last Updated: 
+    - 16/08/2026
     '''        
 
     # Data Reading
-    T, M_ZFC, M_FC = np.loadtxt(os.path.join(path, 'M(t,T;H).txt'), usecols=(1, 4, 7), unpack=True)
-    ΔM, ΔM_f       = np.loadtxt(os.path.join(path, 'ΔM(t,T;H).txt'), usecols=(2, 3), unpack=True)
-    ρTB, ρTB_f     = np.loadtxt(os.path.join(path, 'ρTB(t,T;H).txt'), usecols=(2, 3), unpack=True)
-    summary        = np.loadtxt(os.path.join(path, 'Summary.txt'), usecols=(1), unpack=True)
-    MS, HS, H0, TB = summary[20], summary[29],  summary[30], summary[35]
+    with h5py.File(os.path.join(path, 'Simulation.h5'), 'r') as file:
+
+        # Summary
+        MS = file['/Summary'].attrs['MS']
+        HS = file['/Summary'].attrs['HS']
+        H0 = file['/Summary'].attrs['H0']
+
+        # Thermodynamic Properties
+        TB = file['/Thermodynamic_Properties'].attrs['TB']
+
+        # Signals
+        T     = file['/Signals/Temperature'][:]
+        M_ZFC = file['/Signals/Volumetric_Magnetization_ZFC'][:, 2]
+        M_FC  = file['/Signals/Volumetric_Magnetization_FC'][:, 2]
+        ΔM    = file['/Signals/ΔM'][:]
+        ΔM_f  = file['/Signals/ΔM_Fitted'][:]
+        ρTB   = file['/Signals/ρTB'][:]
+        ρTB_f = file['/Signals/ρTB_Fitted'][:]
 
     # Text
     t1   = f'$T_{{B}} = {TB:0.0f}$ K'
